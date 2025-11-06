@@ -1,0 +1,56 @@
+:root {
+  /* Pastel Colors */
+  --color-pastel-blue: #b4ddf9;
+  --color-pastel-lavender: #cfc1f2;
+  --color-pastel-peach: #fde8c9;
+  --color-pastel-mint: #e0ebdd;
+  --color-pastel-purple: #ebe2fd;
+
+  /* Bright Colors */
+  --color-bright-coral: #fab3af;
+  --color-bright-sage: #bacda3;
+  --color-bright-sky: #afc5de;
+  --color-bright-blue: #2d9aff;
+
+  /* Neutral Colors */
+  --color-neutral-white: #ffffff;
+  --color-neutral-light-gray: #f8f9fa;
+  --color-neutral-gray: #e9ecef;
+  --color-neutral-dark-gray: #6c757d;
+  --color-neutral-text: #2c3e50;
+
+  /* Semantic Aliases */
+  --color-primary: var(--color-bright-blue);
+  --color-success: var(--color-bright-sage);
+  --color-warning: var(--color-pastel-peach);
+  --color-error: var(--color-bright-coral);
+  --color-info: var(--color-pastel-blue);
+  --color-background: var(--color-neutral-light-gray);
+  --color-surface: var(--color-neutral-white);
+  --color-border: var(--color-neutral-gray);
+  --color-text: var(--color-neutral-text);
+  --color-text-secondary: var(--color-neutral-dark-gray);
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(45, 154, 255, 0.3);
+  --shadow-lg: 0 4px 12px rgba(175, 197, 222, 0.4);
+
+  /* Transitions */
+  --transition-fast: 0.1s;
+  --transition-mid: 0.2s;
+  --transition-slow: 0.3s;
+}
