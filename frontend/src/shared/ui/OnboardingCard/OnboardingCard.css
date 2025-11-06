@@ -1,0 +1,36 @@
+.onboarding-card {
+  min-width: 220px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px !important;
+  transition: all var(--transition-mid) ease;
+  cursor: default;
+  border-radius: 20px !important;
+}
+
+.onboarding-card:hover {
+  transform: translateY(-4px);
+}
+
+.onboarding-card__icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.onboarding-card__title {
+  margin-bottom: 8px !important;
+  color: var(--color-text) !important;
+  font-weight: 700 !important;
+}
+
+.onboarding-card__description {
+  margin-bottom: 0 !important;
+  color: var(--color-text-secondary) !important;
+  font-size: 14px;
+  line-height: 1.2;
+}
