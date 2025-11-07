@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import sessionSetupReducer from '@/entities/session/model/sessionSetupSlice';
 
 /**
  * Root Redux store configuration
@@ -6,6 +7,7 @@ import { configureStore } from '@reduxjs/toolkit';
  */
 export const store = configureStore({
   reducer: {
+    sessionSetup: sessionSetupReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
