@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import sessionSetupReducer from '@/entities/session/model/sessionSetupSlice';
+import activeSessionReducer from '@/entities/session/model/activeSessionSlice';
 
 /**
  * Root Redux store configuration
@@ -8,6 +9,7 @@ import sessionSetupReducer from '@/entities/session/model/sessionSetupSlice';
 export const store = configureStore({
   reducer: {
     sessionSetup: sessionSetupReducer,
+    activeSession: activeSessionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
