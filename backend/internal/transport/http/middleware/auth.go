@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rnegic/synchronous/internal/interfaces"
@@ -10,25 +9,17 @@ import (
 
 func AuthMiddleware(authService interfaces.AuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+		// Read access token from cookie instead of Authorization header
+		accessToken, err := c.Cookie("access_token")
+		if err != nil || accessToken == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "authorization header required",
+				"error": "unauthorized",
 			})
 			c.Abort()
 			return
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid authorization header format",
-			})
-			c.Abort()
-			return
-		}
-
-		userID, err := authService.ValidateToken(parts[1])
+		userID, err := authService.ValidateToken(accessToken)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid token",

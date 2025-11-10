@@ -71,3 +71,13 @@ func (tm *TokenManager) ValidateToken(tokenString string) (*Claims, error) {
 
 	return nil, errors.New("invalid token")
 }
+
+// GetAccessTTL returns the access token TTL in seconds
+func (tm *TokenManager) GetAccessTTL() int {
+	return int(tm.accessTTL.Seconds())
+}
+
+// GetRefreshTTL returns the refresh token TTL in seconds
+func (tm *TokenManager) GetRefreshTTL() int {
+	return int(tm.refreshTTL.Seconds())
+}

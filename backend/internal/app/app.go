@@ -82,7 +82,7 @@ func (a *App) Run() error {
 	// Инициализация handlers
 	baseHandler := v1.NewBaseHandler()
 
-	authHandler := v1.NewAuthHandler(baseHandler, authService)
+	authHandler := v1.NewAuthHandler(baseHandler, authService, tokenManager)
 	userHandler := v1.NewUserHandler(baseHandler, userService)
 	sessionHandler := v1.NewSessionHandler(baseHandler, sessionService, messageService, leaderboardService)
 

@@ -5,7 +5,9 @@ info:
     API для мини-приложения синхронных сессий фокуса с интеграцией Max API.
     
     ## Аутентификация
-    API использует Bearer токены для аутентификации. Получите токен через endpoint `/api/v1/auth/login`.
+    API использует HTTP-only cookies для аутентификации (защита от XSS атак).
+    Токены устанавливаются автоматически при входе через endpoint `/api/v1/auth/login`.
+    Access token доступен для всех API endpoints, refresh token - только для `/auth/refresh`.
     
     ## Особенности
     - Solo и Group сессии фокуса
@@ -44,7 +46,9 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT токен полученный через /auth/login
+      description: |
+        JWT токен в HTTP-only cookie access_token (устанавливается автоматически при /auth/login).
+        Для обратной совместимости также поддерживается Bearer токен в Authorization header.
 
   schemas:
     Error:
@@ -122,30 +126,23 @@ components:
       properties:
         user:
           $ref: '#/components/schemas/User'
-        accessToken:
-          type: string
-        refreshToken:
-          type: string
       required:
         - user
-        - accessToken
-        - refreshToken
-
-    RefreshTokenRequest:
-      type: object
-      properties:
-        refreshToken:
-          type: string
-      required:
-        - refreshToken
+      description: |
+        Токены устанавливаются в HTTP-only cookies:
+        - access_token: доступен для всех API endpoints (Path=/)
+        - refresh_token: доступен только для /auth/refresh (Path=/api/v1/auth/refresh)
 
     RefreshTokenResponse:
       type: object
       properties:
-        accessToken:
-          type: string
+        success:
+          type: boolean
       required:
-        - accessToken
+        - success
+      description: |
+        Новый access_token устанавливается в HTTP-only cookie.
+        Refresh token читается из cookie refresh_token.
 
     SessionMode:
       type: string
@@ -426,7 +423,9 @@ paths:
       tags:
         - auth
       summary: Вход через Max token
-      description: Авторизация пользователя через Max Messenger token
+      description: |
+        Авторизация пользователя через Max Messenger token.
+        Токены устанавливаются в HTTP-only cookies для защиты от XSS атак.
       requestBody:
         required: true
         content:
@@ -436,6 +435,15 @@ paths:
       responses:
         '200':
           description: Успешная авторизация
+          headers:
+            Set-Cookie:
+              description: |
+                HTTP-only cookies с токенами:
+                - access_token: HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=900
+                - refresh_token: HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth/refresh; Max-Age=604800
+              schema:
+                type: string
+                example: access_token=eyJhbGc...; HttpOnly; Secure; SameSite=Strict
           content:
             application/json:
               schema:
@@ -452,22 +460,26 @@ paths:
       tags:
         - auth
       summary: Обновление access token
-      description: Получение нового access token используя refresh token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
+      description: |
+        Получение нового access token используя refresh token из cookie.
+        Refresh token читается из HTTP-only cookie refresh_token.
       responses:
         '200':
-          description: Новый access token
+          description: Токен обновлён
+          headers:
+            Set-Cookie:
+              description: |
+                Новый access_token в HTTP-only cookie:
+                - access_token: HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=900
+              schema:
+                type: string
+                example: access_token=eyJhbGc...; HttpOnly; Secure; SameSite=Strict
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RefreshTokenResponse'
         '401':
-          description: Невалидный refresh token
+          description: Невалидный refresh token или отсутствует cookie
           content:
             application/json:
               schema:
