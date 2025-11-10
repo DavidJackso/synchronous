@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: synchronous_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-synchronous_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me}
+      POSTGRES_DB: ${DB_NAME:-synchronous_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-synchronous_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - synchronous_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: synchronous_backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_DSN=postgres://${DB_USER:-synchronous_user}:${DB_PASSWORD:-change_me}@postgres:5432/${DB_NAME:-synchronous_db}?sslmode=disable
+      - MAXAPI_BASE_URL=${MAXAPI_BASE_URL:-https://platform-api.max.ru}
+      - MAXAPI_ACCESS_TOKEN=${MAXAPI_ACCESS_TOKEN}
+      - JWT_SECRET=${JWT_SECRET}
+      - GIN_MODE=release
+    volumes:
+      - ./backend/configs:/root/configs:ro
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - synchronous_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: synchronous_nginx
+    depends_on:
+      - backend
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    networks:
+      - synchronous_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  synchronous_network:
+    driver: bridge
+
