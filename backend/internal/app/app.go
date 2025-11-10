@@ -112,10 +112,8 @@ func (a *App) Run() error {
 		}
 	}
 
-	// Swagger UI (только для разработки)
-	appRouter.Static("/swagger", "./docs")
-	appRouter.StaticFile("/swagger.yaml", "./docs/swagger.yaml")
-	appRouter.StaticFile("/swagger.json", "./docs/swagger.yaml") // В реальности нужно конвертировать YAML в JSON
+	appRouter.StaticFile("/swagger.yaml", "./swagger.yaml")
+	appRouter.StaticFile("/swagger.json", "./swagger.yaml") // В реальности нужно конвертировать YAML в JSON
 
 	fmt.Printf("Server starting on %s\n", cfg.Server.Address)
 	err = appRouter.Run(cfg.Server.Address)
