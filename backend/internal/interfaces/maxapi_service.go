@@ -4,6 +4,7 @@ import "github.com/rnegic/synchronous/pkg/maxapi"
 
 type MaxAPIService interface {
 	GetBotInfo() (*maxapi.BotInfo, error)
+	GetProfileByToken(accessToken string) (*maxapi.BotInfo, error)
 	SendMessage(chatID int64, text string) error
 	SendMessageToUser(userID int64, message *maxapi.SendMessageRequest) (*maxapi.SendMessageResponse, error)
 	GetChat(chatID int64) (*maxapi.Chat, error)
