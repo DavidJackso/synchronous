@@ -54,7 +54,7 @@ func (h *BaseHandler) setAccessTokenCookie(c *gin.Context, token string, maxAge 
 		MaxAge:   maxAge,
 		HttpOnly: true,
 		Secure:   secure,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode, // None allows cookies in iframe (MAX WebApp)
 	}
 	http.SetCookie(c.Writer, cookie)
 }
@@ -69,7 +69,7 @@ func (h *BaseHandler) setRefreshTokenCookie(c *gin.Context, token string, maxAge
 		MaxAge:   maxAge,
 		HttpOnly: true,
 		Secure:   secure,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode, // None allows cookies in iframe (MAX WebApp)
 	}
 	http.SetCookie(c.Writer, cookie)
 }
@@ -84,7 +84,7 @@ func (h *BaseHandler) clearAccessTokenCookie(c *gin.Context) {
 		MaxAge:   0,
 		HttpOnly: true,
 		Secure:   secure,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode, // None allows cookies in iframe (MAX WebApp)
 	}
 	http.SetCookie(c.Writer, cookie)
 }
@@ -99,7 +99,7 @@ func (h *BaseHandler) clearRefreshTokenCookie(c *gin.Context) {
 		MaxAge:   0,
 		HttpOnly: true,
 		Secure:   secure,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode, // None allows cookies in iframe (MAX WebApp)
 	}
 	http.SetCookie(c.Writer, cookie)
 }
