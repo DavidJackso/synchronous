@@ -32,3 +32,7 @@ echo ""
 echo "Подключение к БД:"
 echo "docker compose exec postgres psql -U \${DB_USER:-synchronous_user} -d \${DB_NAME:-synchronous_db}"
 
+git pull
+docker compose up -d --force-recreate swagger-ui
+docker compose restart nginx
+curl http://focus-sync.ru/swagger/

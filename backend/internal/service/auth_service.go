@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,32 +30,67 @@ func NewAuthService(
 }
 
 func (s *AuthService) Login(maxToken, deviceID string) (*entity.AuthTokens, *entity.User, error) {
-	// В реальности нужно валидировать maxToken через Max API
-	// Для примера просто создаем пользователя
-
-	// Получаем информацию о боте (для проверки токена)
-	_, err := s.maxAPISvc.GetBotInfo()
+	profile, err := s.maxAPISvc.GetProfileByToken(maxToken)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to validate max token: %w", err)
 	}
 
-	// Здесь должна быть логика получения информации о пользователе из Max API
-	// Пока используем заглушку
-	maxUserID := int64(123456789) // В реальности получаем из Max API
+	if profile == nil || profile.UserID == 0 {
+		return nil, nil, fmt.Errorf("invalid max token: missing profile information")
+	}
 
-	// Проверяем, существует ли пользователь
-	user, err := s.userRepo.GetByMaxUserID(maxUserID)
+	displayName := strings.TrimSpace(fmt.Sprintf("%s %s", profile.FirstName, profile.LastName))
+	if displayName == "" {
+		displayName = strings.TrimSpace(profile.Name)
+	}
+	if displayName == "" {
+		displayName = fmt.Sprintf("user-%d", profile.UserID)
+	}
+
+	var avatarURL *string
+	if strings.TrimSpace(profile.AvatarURL) != "" {
+		avatar := strings.TrimSpace(profile.AvatarURL)
+		avatarURL = &avatar
+	}
+
+	user, err := s.userRepo.GetByMaxUserID(profile.UserID)
 	if err != nil {
-		// Создаем нового пользователя
+		return nil, nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	now := time.Now()
+
+	if user == nil {
 		user = &entity.User{
 			ID:        uuid.New().String(),
-			Name:      "User", // В реальности получаем из Max API
-			MaxUserID: maxUserID,
-			CreatedAt: time.Now(),
+			Name:      displayName,
+			AvatarURL: avatarURL,
+			MaxUserID: profile.UserID,
+			CreatedAt: now,
+			UpdatedAt: now,
 		}
 
 		if err := s.userRepo.Create(user); err != nil {
 			return nil, nil, fmt.Errorf("failed to create user: %w", err)
+		}
+	} else {
+		needsUpdate := false
+
+		if user.Name != displayName {
+			user.Name = displayName
+			needsUpdate = true
+		}
+
+		if !equalPointers(user.AvatarURL, avatarURL) {
+			user.AvatarURL = avatarURL
+			needsUpdate = true
+		}
+
+		if needsUpdate {
+			user.UpdatedAt = now
+			if err := s.userRepo.Update(user); err != nil {
+				return nil, nil, fmt.Errorf("failed to update user: %w", err)
+			}
 		}
 	}
 
@@ -69,8 +105,7 @@ func (s *AuthService) Login(maxToken, deviceID string) (*entity.AuthTokens, *ent
 		return nil, nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
 
-	// Получаем TTL из конфигурации (нужно передать через конструктор)
-	accessTTL := 3600 * time.Second // По умолчанию 1 час
+	accessTTL := s.tokenManager.AccessTTL()
 
 	tokens := &entity.AuthTokens{
 		AccessToken:  accessToken,
@@ -104,8 +139,7 @@ func (s *AuthService) RefreshToken(refreshToken string) (*entity.AuthTokens, err
 		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
 
-	// Получаем TTL из конфигурации
-	accessTTL := 3600 * time.Second // По умолчанию 1 час
+	accessTTL := s.tokenManager.AccessTTL()
 
 	tokens := &entity.AuthTokens{
 		AccessToken:  accessToken,
@@ -129,4 +163,14 @@ func (s *AuthService) Logout(userID string) error {
 	// В реальности можно добавить blacklist токенов
 	// Пока просто возвращаем успех
 	return nil
+}
+
+func equalPointers(a, b *string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
 }

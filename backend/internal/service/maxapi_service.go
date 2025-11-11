@@ -8,17 +8,24 @@ import (
 )
 
 type MaxAPIService struct {
-	client *maxapi.Client
+	client  *maxapi.Client
+	baseURL string
 }
 
 func NewMaxAPIService(baseURL, accessToken string) interfaces.MaxAPIService {
 	return &MaxAPIService{
-		client: maxapi.NewClient(baseURL, accessToken),
+		client:  maxapi.NewClient(baseURL, accessToken),
+		baseURL: baseURL,
 	}
 }
 
 func (s *MaxAPIService) GetBotInfo() (*maxapi.BotInfo, error) {
 	return s.client.GetMyInfo()
+}
+
+func (s *MaxAPIService) GetProfileByToken(accessToken string) (*maxapi.BotInfo, error) {
+	dynamicClient := maxapi.NewClient(s.baseURL, accessToken)
+	return dynamicClient.GetMyInfo()
 }
 
 func (s *MaxAPIService) SendMessage(chatID int64, text string) error {

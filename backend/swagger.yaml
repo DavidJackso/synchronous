@@ -113,10 +113,16 @@ components:
       properties:
         maxToken:
           type: string
-          description: Токен из Max Messenger
+          description: |
+            Пользовательский access_token, полученный от Max (mini-app bridge или OAuth flow).
+            Именно этот токен фронтенд передаёт на backend для авторизации.
+          example: "001.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         deviceId:
           type: string
-          description: Уникальный идентификатор устройства
+          description: |
+            Идентификатор устройства/клиента (например, UUID браузера или мобильного устройства).
+            Используется для трекинга сессий и отзывов refresh токенов.
+          example: "device-f5e3b94a-5e1b-4a16-9a3f-0db8741c4f19"
       required:
         - maxToken
         - deviceId
@@ -425,6 +431,7 @@ paths:
       summary: Вход через Max token
       description: |
         Авторизация пользователя через Max Messenger token.
+        `maxToken` — это пользовательский access_token, который фронтенд получает от Max (mini-app bridge или OAuth flow).
         Токены устанавливаются в HTTP-only cookies для защиты от XSS атак.
       requestBody:
         required: true

@@ -81,3 +81,13 @@ func (tm *TokenManager) GetAccessTTL() int {
 func (tm *TokenManager) GetRefreshTTL() int {
 	return int(tm.refreshTTL.Seconds())
 }
+
+// AccessTTL returns the access token TTL as duration.
+func (tm *TokenManager) AccessTTL() time.Duration {
+	return tm.accessTTL
+}
+
+// RefreshTTL returns the refresh token TTL as duration.
+func (tm *TokenManager) RefreshTTL() time.Duration {
+	return tm.refreshTTL
+}
