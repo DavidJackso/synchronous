@@ -8,8 +8,16 @@ import { WebSocketClient } from '@/shared/lib/websocket';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://focus-sync.ru/api/v1';
 
-// Convert HTTP URL to WebSocket URL
-const WS_URL = API_BASE_URL.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:') + '/api/v1/ws';
+// Build WebSocket URL from API base origin to avoid duplicated path segments
+let WS_URL = 'ws://localhost:8080/api/v1/ws';
+try {
+  const parsed = new URL(API_BASE_URL);
+  // Use origin (scheme + host + port) and then add WS path
+  WS_URL = parsed.origin.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:') + '/api/v1/ws';
+} catch (err) {
+  // fallback to sensible default
+  console.warn('[useWebSocket] Failed to parse VITE_API_BASE_URL, falling back to', WS_URL, err);
+}
 
 // Global WebSocket client instance (singleton)
 let wsClient: WebSocketClient | null = null;
