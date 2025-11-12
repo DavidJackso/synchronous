@@ -152,10 +152,12 @@ func (s *SessionService) GetPublicSessions(page, limit int) ([]*entity.Session, 
 		return nil, 0, fmt.Errorf("failed to get sessions: %w", err)
 	}
 
-	// Filter for public and pending sessions
+	// Filter for public, pending, and GROUP sessions only (no solo sessions)
 	publicSessions := make([]*entity.Session, 0)
 	for _, session := range sessions {
-		if !session.IsPrivate && session.Status == entity.SessionStatusPending {
+		if !session.IsPrivate && 
+		   session.Status == entity.SessionStatusPending && 
+		   session.Mode == entity.SessionModeGroup {
 			publicSessions = append(publicSessions, session)
 		}
 	}

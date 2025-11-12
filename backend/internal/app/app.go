@@ -85,12 +85,17 @@ func (a *App) Run() error {
 	messageService := service.NewMessageService(sessionService, maxAPIService, userRepo, messageRepo)
 	leaderboardService := service.NewLeaderboardService(leaderboardRepo, sessionRepo, userRepo)
 
+	// Start session cleanup service (cleanup sessions older than 1 hour every 15 minutes)
+	cleanupService := service.NewSessionCleanupService(sessionRepo, 15*time.Minute, 1*time.Hour)
+	cleanupService.Start()
+
 	// Инициализация handlers
 	baseHandler := v1.NewBaseHandler()
 
 	authHandler := v1.NewAuthHandler(baseHandler, authService, tokenManager)
 	userHandler := v1.NewUserHandler(baseHandler, userService)
 	sessionHandler := v1.NewSessionHandler(baseHandler, sessionService, messageService, leaderboardService)
+	wsHandler := v1.NewWebSocketHandler(baseHandler)
 
 	// Инициализация роутера на gin
 	appRouter := router.New()
@@ -115,6 +120,7 @@ func (a *App) Run() error {
 		{
 			userHandler.RegisterRoutes(protected)
 			sessionHandler.RegisterRoutes(protected)
+			wsHandler.RegisterRoutes(protected)
 		}
 	}
 
