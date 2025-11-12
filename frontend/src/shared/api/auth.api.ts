@@ -29,16 +29,32 @@ export const login = async (
   initData: string,
   deviceId: string
 ): Promise<LoginResponse> => {
+  console.log('[Auth API] 📤 Sending login request', {
+    initDataLength: initData.length,
+    initDataPreview: initData.substring(0, 100) + '...',
+    deviceIdPreview: deviceId.substring(0, 50),
+  });
+
   const payload: LoginRequest = {
     initData,
     deviceId,
   };
 
-  const response = await apiClient.post<LoginResponse>('/auth/login', payload);
+  try {
+    const response = await apiClient.post<LoginResponse>('/auth/login', payload);
 
-  // Tokens are automatically stored in http-only cookies by backend
-  // No need to manually store them
-  return response.data;
+    console.log('[Auth API] ✅ Login successful', {
+      user: response.data.user,
+      cookiesReceived: document.cookie.includes('access_token'),
+    });
+
+    // Tokens are automatically stored in http-only cookies by backend
+    // No need to manually store them
+    return response.data;
+  } catch (error) {
+    console.error('[Auth API] ❌ Login failed', error);
+    throw error;
+  }
 };
 
 /**

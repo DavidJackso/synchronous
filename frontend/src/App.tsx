@@ -19,33 +19,54 @@ function App() {
   // Automatic login when MAX initData is available
   useEffect(() => {
     const performAutoLogin = async () => {
+      console.log('[App] 🔍 performAutoLogin started', {
+        isReady,
+        hasInitData: !!initData,
+        hasUser: !!user,
+        isAuthenticated,
+        initDataPreview: initData?.substring(0, 50) + '...',
+      });
+
       // Wait for MAX WebApp to be ready
       if (!isReady) {
+        console.log('[App] ⏳ Waiting for MAX WebApp to be ready...');
         return;
       }
 
       // If already authenticated, stop initialization
       if (isAuthenticated) {
-        console.log('[App] Already authenticated');
+        console.log('[App] ✅ Already authenticated, skipping login');
         setIsInitializing(false);
         return;
       }
 
-      // If no initData available (dev mode), skip auth
+      // If no initData available (dev mode), skip auth entirely
       if (!initData || !user) {
-        console.warn('[App] No initData - running in dev mode without auth');
+        console.warn('[App] ⚠️ No initData - running in dev mode without auth');
         setIsInitializing(false);
         return;
       }
 
       // Perform automatic login
       try {
-        console.log('[App] Auto-login with MAX initData', { user });
+        console.log('[App] 🚀 Starting auto-login...', {
+          userId: user.id,
+          userName: `${user.first_name} ${user.last_name}`,
+          initDataLength: initData.length,
+        });
+        
         const deviceId = navigator.userAgent;
-        await login(initData, deviceId);
-        console.log('[App] Auto-login successful');
+        const result = await login(initData, deviceId);
+        
+        console.log('[App] ✅ Auto-login successful!', result);
       } catch (error) {
-        console.error('[App] Auto-login failed:', error);
+        console.error('[App] ❌ Auto-login failed:', error);
+        if (error instanceof Error) {
+          console.error('[App] Error details:', {
+            message: error.message,
+            stack: error.stack,
+          });
+        }
       } finally {
         setIsInitializing(false);
       }

@@ -64,6 +64,8 @@ apiClient.interceptors.request.use(
       console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
         params: config.params,
         data: config.data,
+        withCredentials: config.withCredentials,
+        hasCookies: document.cookie.length > 0,
       });
     }
 
@@ -123,6 +125,13 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized - backend will refresh via http-only cookie
     if (error.response?.status === 401 && !originalRequest._retry && !shouldSkipRefresh) {
+      // Check if we're running in MAX environment (have initData)
+      // If not, don't attempt refresh to avoid infinite loops in dev mode
+      if (typeof window !== 'undefined' && !window.WebApp?.initData) {
+        console.warn('[API Client] 401 in dev mode (no MAX initData) - skipping token refresh');
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         // Wait for token refresh to complete
         return new Promise((resolve, reject) => {
