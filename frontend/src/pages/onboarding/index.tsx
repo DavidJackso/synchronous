@@ -54,7 +54,7 @@ export function OnboardingPage() {
   useEffect(() => {
     if (isAuthenticated) {
       console.log('[Onboarding] User authenticated, redirecting to home');
-      navigate('/', { replace: true });
+      navigate('/home', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -78,7 +78,7 @@ export function OnboardingPage() {
       
       console.log('[Onboarding] Login successful');
       message.success('Вход выполнен успешно!');
-      navigate('/', { replace: true });
+      navigate('/home', { replace: true });
     } catch (err) {
       console.error('[Onboarding] Login failed:', err);
       message.error(error || 'Ошибка входа. Попробуйте снова.');

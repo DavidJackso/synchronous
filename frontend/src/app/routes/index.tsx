@@ -13,13 +13,6 @@ export const routes: RouteObject[] = [
         },
       },
       {
-        path: '/onboarding',
-        lazy: async () => {
-          const { OnboardingPage } = await import('@/pages/onboarding');
-          return { Component: OnboardingPage };
-        },
-      },
-      {
         path: '/session-setup',
         lazy: async () => {
           const { SessionSetupPage } = await import('@/pages/session-setup');
