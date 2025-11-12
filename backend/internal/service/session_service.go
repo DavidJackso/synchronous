@@ -102,12 +102,18 @@ func (s *SessionService) GetSession(sessionID string, userID string) (*entity.Se
 	}
 
 	// Проверяем доступ
-	hasAccess := session.CreatorID == userID
-	if !hasAccess {
-		for _, p := range session.Participants {
-			if p.UserID == userID {
-				hasAccess = true
-				break
+	// Для публичных сессий доступ разрешен всем
+	// Для приватных сессий - только создателю и участникам
+	hasAccess := !session.IsPrivate // Публичные сессии доступны всем
+	if session.IsPrivate {
+		// Для приватных сессий проверяем права
+		hasAccess = session.CreatorID == userID
+		if !hasAccess {
+			for _, p := range session.Participants {
+				if p.UserID == userID {
+					hasAccess = true
+					break
+				}
 			}
 		}
 	}
