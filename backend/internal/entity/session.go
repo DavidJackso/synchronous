@@ -18,6 +18,7 @@ type SessionStatus string
 const (
 	SessionStatusPending   SessionStatus = "pending"
 	SessionStatusActive    SessionStatus = "active"
+	SessionStatusPaused    SessionStatus = "paused"
 	SessionStatusCompleted SessionStatus = "completed"
 	SessionStatusCancelled SessionStatus = "cancelled"
 )

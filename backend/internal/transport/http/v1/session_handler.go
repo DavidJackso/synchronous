@@ -48,6 +48,8 @@ func (h *SessionHandler) RegisterRoutes(router *gin.RouterGroup) {
 			session.POST("/join", h.joinSession)
 			session.PATCH("/ready", h.setReady)
 			session.POST("/start", h.startSession)
+			session.POST("/pause", h.pauseSession)
+			session.POST("/resume", h.resumeSession)
 			session.POST("/complete", h.completeSession)
 
 			// Чат
@@ -332,6 +334,74 @@ func (h *SessionHandler) startSession(c *gin.Context) {
 			"id":        session.ID,
 			"status":    session.Status,
 			"startedAt": session.StartedAt.Format(time.RFC3339),
+		},
+	})
+}
+
+// pauseSession ставит сессию на паузу
+func (h *SessionHandler) pauseSession(c *gin.Context) {
+	userID := h.GetUserID(c)
+	if userID == "" {
+		h.ErrorResponse(c, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	sessionID := c.Param("sessionId")
+
+	if err := h.sessionService.PauseSession(sessionID, userID); err != nil {
+		if strings.Contains(err.Error(), "not authorized") || strings.Contains(err.Error(), "only creator") {
+			h.ErrorResponse(c, http.StatusForbidden, err.Error())
+		} else {
+			h.ErrorResponse(c, http.StatusBadRequest, err.Error())
+		}
+		return
+	}
+
+	// Получаем обновленную сессию
+	session, err := h.sessionService.GetSession(sessionID, userID)
+	if err != nil {
+		h.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.SuccessResponse(c, http.StatusOK, gin.H{
+		"session": gin.H{
+			"id":     session.ID,
+			"status": session.Status,
+		},
+	})
+}
+
+// resumeSession возобновляет сессию
+func (h *SessionHandler) resumeSession(c *gin.Context) {
+	userID := h.GetUserID(c)
+	if userID == "" {
+		h.ErrorResponse(c, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	sessionID := c.Param("sessionId")
+
+	if err := h.sessionService.ResumeSession(sessionID, userID); err != nil {
+		if strings.Contains(err.Error(), "not authorized") || strings.Contains(err.Error(), "only creator") {
+			h.ErrorResponse(c, http.StatusForbidden, err.Error())
+		} else {
+			h.ErrorResponse(c, http.StatusBadRequest, err.Error())
+		}
+		return
+	}
+
+	// Получаем обновленную сессию
+	session, err := h.sessionService.GetSession(sessionID, userID)
+	if err != nil {
+		h.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.SuccessResponse(c, http.StatusOK, gin.H{
+		"session": gin.H{
+			"id":     session.ID,
+			"status": session.Status,
 		},
 	})
 }

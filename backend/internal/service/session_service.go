@@ -228,13 +228,69 @@ func (s *SessionService) StartSession(sessionID string, userID string) error {
 }
 
 func (s *SessionService) PauseSession(sessionID string, userID string) error {
-	// Реализация паузы
-	return fmt.Errorf("not implemented")
+	session, err := s.sessionRepo.GetByID(sessionID)
+	if err != nil {
+		return fmt.Errorf("session not found: %w", err)
+	}
+
+	// Verify user is participant or creator
+	if session.CreatorID != userID {
+		// For group sessions, check if user is participant
+		if session.Mode == entity.SessionModeGroup {
+			isParticipant := false
+			for _, p := range session.Participants {
+				if p.UserID == userID {
+					isParticipant = true
+					break
+				}
+			}
+			if !isParticipant {
+				return fmt.Errorf("user not authorized to pause session")
+			}
+		} else {
+			return fmt.Errorf("only creator can pause solo session")
+		}
+	}
+
+	if session.Status != entity.SessionStatusActive {
+		return fmt.Errorf("session is not active")
+	}
+
+	session.Status = entity.SessionStatusPaused
+	return s.sessionRepo.Update(session)
 }
 
 func (s *SessionService) ResumeSession(sessionID string, userID string) error {
-	// Реализация возобновления
-	return fmt.Errorf("not implemented")
+	session, err := s.sessionRepo.GetByID(sessionID)
+	if err != nil {
+		return fmt.Errorf("session not found: %w", err)
+	}
+
+	// Verify user is participant or creator
+	if session.CreatorID != userID {
+		// For group sessions, check if user is participant
+		if session.Mode == entity.SessionModeGroup {
+			isParticipant := false
+			for _, p := range session.Participants {
+				if p.UserID == userID {
+					isParticipant = true
+					break
+				}
+			}
+			if !isParticipant {
+				return fmt.Errorf("user not authorized to resume session")
+			}
+		} else {
+			return fmt.Errorf("only creator can resume solo session")
+		}
+	}
+
+	if session.Status != entity.SessionStatusPaused {
+		return fmt.Errorf("session is not paused")
+	}
+
+	session.Status = entity.SessionStatusActive
+	return s.sessionRepo.Update(session)
 }
 
 func (s *SessionService) CompleteSession(sessionID string, userID string) (*entity.SessionReport, error) {
