@@ -38,13 +38,21 @@ func NewAuthService(
 func (s *AuthService) Login(initData, deviceID string) (*entity.AuthTokens, *entity.User, error) {
 	_ = deviceID
 
+	fmt.Printf("[Auth Service] 📥 Login attempt\n")
+	fmt.Printf("[Auth Service]   initData length: %d\n", len(initData))
+	fmt.Printf("[Auth Service]   initData preview: %.100s...\n", initData)
+
 	payload, err := validateInitData(initData, s.botToken)
 	if err != nil {
+		fmt.Printf("[Auth Service] ❌ Validation failed: %v\n", err)
 		return nil, nil, fmt.Errorf("failed to validate init data: %w", err)
 	}
 
+	fmt.Printf("[Auth Service] ✅ Validation successful\n")
+
 	userJSON, ok := payload["user"]
 	if !ok || strings.TrimSpace(userJSON) == "" {
+		fmt.Printf("[Auth Service] ❌ Missing user payload\n")
 		return nil, nil, fmt.Errorf("init data missing user payload")
 	}
 
@@ -143,11 +151,15 @@ type maxInitDataUser struct {
 }
 
 func validateInitData(initData, botToken string) (map[string]string, error) {
+	fmt.Printf("[Validation] 🔍 Starting validation\n")
+
 	if strings.TrimSpace(initData) == "" {
+		fmt.Printf("[Validation] ❌ initData is empty\n")
 		return nil, fmt.Errorf("init data is empty")
 	}
 
 	if strings.TrimSpace(botToken) == "" {
+		fmt.Printf("[Validation] ❌ botToken is not configured\n")
 		return nil, fmt.Errorf("bot token is not configured")
 	}
 
@@ -156,16 +168,20 @@ func validateInitData(initData, botToken string) (map[string]string, error) {
 	if err != nil {
 		decodedInitData = initData
 	}
+	fmt.Printf("[Validation] 📝 Decoded initData: %.100s...\n", decodedInitData)
 
 	values, err := url.ParseQuery(decodedInitData)
 	if err != nil {
+		fmt.Printf("[Validation] ❌ Failed to parse query: %v\n", err)
 		return nil, fmt.Errorf("unable to parse init data: %w", err)
 	}
 
 	hash := values.Get("hash")
 	if strings.TrimSpace(hash) == "" {
+		fmt.Printf("[Validation] ❌ hash is missing\n")
 		return nil, fmt.Errorf("init data missing hash")
 	}
+	fmt.Printf("[Validation] 🔑 Extracted hash: %s\n", hash)
 	values.Del("hash")
 
 	keys := make([]string, 0, len(values))
@@ -173,6 +189,7 @@ func validateInitData(initData, botToken string) (map[string]string, error) {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
+	fmt.Printf("[Validation] 📋 Sorted keys: %v\n", keys)
 
 	var sb strings.Builder
 	for i, key := range keys {
@@ -184,25 +201,33 @@ func validateInitData(initData, botToken string) (map[string]string, error) {
 		}
 	}
 	dataCheckString := sb.String()
+	fmt.Printf("[Validation] 📄 data_check_string (first 200 chars): %.200s\n", dataCheckString)
 
 	// 1. Создаем secret_key = HMAC_SHA256("WebAppData", botToken)
 	secretKeyMac := hmac.New(sha256.New, []byte("WebAppData"))
 	secretKeyMac.Write([]byte(botToken))
 	secretKey := secretKeyMac.Sum(nil)
+	fmt.Printf("[Validation] 🔐 secret_key: %x\n", secretKey)
 
 	// 2. Вычисляем hash = HMAC_SHA256(secret_key, data_check_string)
 	mac := hmac.New(sha256.New, secretKey)
 	mac.Write([]byte(dataCheckString))
 	expectedHash := mac.Sum(nil)
+	fmt.Printf("[Validation] 🎯 expected_hash: %x\n", expectedHash)
 
 	providedHash, err := hex.DecodeString(hash)
 	if err != nil {
+		fmt.Printf("[Validation] ❌ Invalid hash format: %v\n", err)
 		return nil, fmt.Errorf("invalid hash format: %w", err)
 	}
+	fmt.Printf("[Validation] 📨 provided_hash: %x\n", providedHash)
 
 	if !hmac.Equal(expectedHash, providedHash) {
+		fmt.Printf("[Validation] ❌ Hash mismatch!\n")
 		return nil, fmt.Errorf("init data hash mismatch")
 	}
+
+	fmt.Printf("[Validation] ✅ Validation successful!\n")
 
 	result := make(map[string]string, len(keys))
 	for _, key := range keys {

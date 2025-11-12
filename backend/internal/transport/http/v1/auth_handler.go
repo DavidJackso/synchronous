@@ -39,16 +39,25 @@ func (h *AuthHandler) login(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("[Auth Handler] 📥 Login request received\n")
+	fmt.Printf("[Auth Handler]   Request origin: %s\n", c.Request.Header.Get("Origin"))
+	fmt.Printf("[Auth Handler]   User-Agent: %s\n", c.Request.Header.Get("User-Agent"))
+	fmt.Printf("[Auth Handler]   X-Forwarded-Proto: %s\n", c.Request.Header.Get("X-Forwarded-Proto"))
+
 	tokens, user, err := h.authService.Login(req.InitData, req.DeviceID)
 	if err != nil {
+		fmt.Printf("[Auth Handler] ❌ Login failed: %v\n", err)
 		h.ErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return
 	}
+
+	fmt.Printf("[Auth Handler] ✅ Login successful for user: %s (ID: %s)\n", user.Name, user.ID)
 
 	// Set HTTP-only cookies instead of returning tokens in body
 	accessTTL := h.tokenManager.GetAccessTTL()
 	refreshTTL := h.tokenManager.GetRefreshTTL()
 
+	fmt.Printf("[Auth Handler] 🍪 Setting cookies (access TTL: %ds, refresh TTL: %ds)\n", accessTTL, refreshTTL)
 	h.setAccessTokenCookie(c, tokens.AccessToken, accessTTL)
 	h.setRefreshTokenCookie(c, tokens.RefreshToken, refreshTTL)
 
@@ -61,6 +70,8 @@ func (h *AuthHandler) login(c *gin.Context) {
 			"createdAt": user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		},
 	})
+
+	fmt.Printf("[Auth Handler] ✅ Response sent with cookies\n")
 }
 
 func (h *AuthHandler) refresh(c *gin.Context) {
