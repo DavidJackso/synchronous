@@ -253,6 +253,10 @@ func (s *SessionService) PauseSession(sessionID string, userID string) error {
 	}
 
 	if session.Status != entity.SessionStatusActive {
+		// Idempotent: if already paused, do nothing
+		if session.Status == entity.SessionStatusPaused {
+			return nil
+		}
 		return fmt.Errorf("session is not active")
 	}
 
@@ -283,6 +287,11 @@ func (s *SessionService) ResumeSession(sessionID string, userID string) error {
 		} else {
 			return fmt.Errorf("only creator can resume solo session")
 		}
+	}
+
+	// Idempotent: if already active, do nothing
+	if session.Status == entity.SessionStatusActive {
+		return nil
 	}
 
 	if session.Status != entity.SessionStatusPaused {

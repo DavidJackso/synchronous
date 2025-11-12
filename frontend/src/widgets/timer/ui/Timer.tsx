@@ -8,6 +8,7 @@ import {
   selectIsRunning,
   selectPhase,
   selectCurrentCycle,
+  selectSessionId,
 } from '@/entities/session/model/activeSessionSelectors';
 import {
   tick,
@@ -15,6 +16,8 @@ import {
   completeSession,
   togglePauseAsync,
 } from '@/entities/session/model/activeSessionSlice';
+import { sessionsApi, getErrorMessage } from '@/shared/api';
+import { message } from 'antd';
 import './Timer.css';
 
 export const Timer = () => {
@@ -25,6 +28,7 @@ export const Timer = () => {
   const isRunning = useAppSelector(selectIsRunning);
   const phase = useAppSelector(selectPhase);
   const currentCycle = useAppSelector(selectCurrentCycle);
+  const sessionId = useAppSelector(selectSessionId);
   
   // Timer tick effect
   useEffect(() => {
@@ -48,14 +52,27 @@ export const Timer = () => {
     dispatch(togglePauseAsync());
   };
   
-  const handleStop = () => {
+  const handleStop = async () => {
     Modal.confirm({
       title: 'Завершить сессию?',
       content: 'Вы уверены, что хотите завершить сессию досрочно? Прогресс будет сохранен.',
       okText: 'Да, завершить',
       cancelText: 'Отмена',
       okButtonProps: { danger: true },
-      onOk: () => {
+      onOk: async () => {
+        // Complete session on backend first
+        if (sessionId) {
+          try {
+            await sessionsApi.completeSession(sessionId);
+            console.log('[Timer] Session completed on backend');
+          } catch (error) {
+            console.error('[Timer] Failed to complete session:', error);
+            message.error(`Ошибка завершения: ${getErrorMessage(error)}`);
+            // Continue with local completion even if API fails
+          }
+        }
+        
+        // Then update Redux state
         dispatch(completeSession());
       },
     });

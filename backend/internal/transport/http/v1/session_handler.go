@@ -16,6 +16,7 @@ type SessionHandler struct {
 	sessionService     interfaces.SessionService
 	messageService     interfaces.MessageService
 	leaderboardService interfaces.LeaderboardService
+	wsHandler          *WebSocketHandler
 }
 
 func NewSessionHandler(
@@ -23,12 +24,14 @@ func NewSessionHandler(
 	sessionService interfaces.SessionService,
 	messageService interfaces.MessageService,
 	leaderboardService interfaces.LeaderboardService,
+	wsHandler *WebSocketHandler,
 ) *SessionHandler {
 	return &SessionHandler{
 		BaseHandler:        baseHandler,
 		sessionService:     sessionService,
 		messageService:     messageService,
 		leaderboardService: leaderboardService,
+		wsHandler:          wsHandler,
 	}
 }
 
@@ -271,6 +274,31 @@ func (h *SessionHandler) joinSession(c *gin.Context) {
 		return
 	}
 
+	// Broadcast participant_joined event via WebSocket
+	if h.wsHandler != nil {
+		// Find the participant who just joined
+		var joinedParticipant *entity.Participant
+		for _, p := range session.Participants {
+			if p.UserID == userID {
+				joinedParticipant = &p
+				break
+			}
+		}
+
+		if joinedParticipant != nil {
+			h.wsHandler.BroadcastMessage("participant_joined", gin.H{
+				"sessionId": sessionID,
+				"participant": gin.H{
+					"userId":    joinedParticipant.UserID,
+					"userName":  joinedParticipant.UserName,
+					"avatarUrl": joinedParticipant.AvatarURL,
+					"isReady":   joinedParticipant.IsReady,
+					"joinedAt":  joinedParticipant.JoinedAt.Format(time.RFC3339),
+				},
+			})
+		}
+	}
+
 	h.SuccessResponse(c, http.StatusOK, gin.H{
 		"session": h.sessionToMap(session),
 	})
@@ -300,6 +328,15 @@ func (h *SessionHandler) setReady(c *gin.Context) {
 		return
 	}
 
+	// Broadcast participant_ready event via WebSocket
+	if h.wsHandler != nil {
+		h.wsHandler.BroadcastMessage("participant_ready", gin.H{
+			"sessionId": sessionID,
+			"userId":    userID,
+			"isReady":   req.IsReady,
+		})
+	}
+
 	c.Status(http.StatusOK)
 }
 
@@ -327,6 +364,13 @@ func (h *SessionHandler) startSession(c *gin.Context) {
 	if err != nil {
 		h.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	// Broadcast session_started event via WebSocket
+	if h.wsHandler != nil {
+		h.wsHandler.BroadcastMessage("session_started", gin.H{
+			"sessionId": sessionID,
+		})
 	}
 
 	h.SuccessResponse(c, http.StatusOK, gin.H{
