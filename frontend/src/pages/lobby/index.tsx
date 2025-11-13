@@ -154,16 +154,6 @@ export function LobbyPage() {
     message.success('Ссылка скопирована!');
   };
 
-  const handleShareLink = () => {
-    if (isMaxEnvironment && window.WebApp) {
-      // Use MAX openMaxLink with invite payload (does not DM, opens bot with payload)
-      window.WebApp.openMaxLink(inviteLink);
-    } else {
-      // Fallback to copy to clipboard
-      handleCopyLink();
-    }
-  };
-
   const handleToggleReady = async () => {
     if (!sessionId || !isMaxEnvironment) {
       setIsReady(!isReady);
@@ -277,12 +267,12 @@ export function LobbyPage() {
           <div className="lobby-page__invite-actions">
             <Button
               icon={<CopyOutlined />}
-              onClick={handleShareLink}
+              onClick={handleCopyLink}
               type="primary"
               size="large"
               block
             >
-              {isMaxEnvironment ? 'Пригласить' : 'Копировать ссылку'}
+              Копировать ссылку
             </Button>
           </div>
         </Card>
