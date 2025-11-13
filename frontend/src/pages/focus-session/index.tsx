@@ -105,6 +105,16 @@ export function FocusSessionPage() {
     }
   }, [sessionId, setupTasks, mode, groupName, focusDuration, breakDuration, dispatch]);
   
+  // Auto-start session on mount for real backend sessions
+  useEffect(() => {
+    if (sessionId && reduxSessionId && isMaxEnvironment) {
+      // Auto-start the session timer when entering focus screen
+      import('@/entities/session/model/activeSessionSlice').then(({ startSessionAsync }) => {
+        dispatch(startSessionAsync());
+      });
+    }
+  }, [sessionId, reduxSessionId, isMaxEnvironment, dispatch]);
+  
   // Redirect to report when session is completed
   useEffect(() => {
     if (isCompleted && sessionId) {

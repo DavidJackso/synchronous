@@ -132,7 +132,9 @@ export function LobbyPage() {
     }
   }, [sessionId, navigate]));
 
-  const allReady = participants.every(p => p.isReady);
+  // Check if all participants (except creator) are ready
+  const nonCreatorParticipants = participants.filter(p => p.userId !== session?.creatorId);
+  const allReady = nonCreatorParticipants.length === 0 || nonCreatorParticipants.every(p => p.isReady);
   
   // Get bot username from environment or use default
   const botBaseUrl = import.meta.env.VITE_MAX_BOT_URL || `https://max.ru/${import.meta.env.VITE_MAX_BOT_USERNAME || 't71_hakaton_bot'}?startapp=`;
