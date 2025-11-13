@@ -57,6 +57,38 @@ func (r *TaskRepository) GetBySessionID(sessionID string) ([]*entity.Task, error
 	return tasks, nil
 }
 
+func (r *TaskRepository) GetBySessionIDAndUserID(sessionID string, userID string) ([]*entity.Task, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	var tasks []*entity.Task
+	for _, task := range r.tasks {
+		if task.SessionID == sessionID && task.UserID != nil && *task.UserID == userID {
+			tasks = append(tasks, task)
+		}
+	}
+
+	return tasks, nil
+}
+
+func (r *TaskRepository) CountBySessionIDAndUserID(sessionID string, userID string) (int, int, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	total := 0
+	completed := 0
+	for _, task := range r.tasks {
+		if task.SessionID == sessionID && task.UserID != nil && *task.UserID == userID {
+			total++
+			if task.Completed {
+				completed++
+			}
+		}
+	}
+
+	return total, completed, nil
+}
+
 func (r *TaskRepository) Update(task *entity.Task) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
