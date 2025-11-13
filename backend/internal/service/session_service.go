@@ -662,6 +662,51 @@ func (s *SessionService) DeleteTask(sessionID string, taskID string, userID stri
 	return s.taskRepo.Delete(taskID)
 }
 
+func (s *SessionService) GetParticipantsProgress(sessionID string, userID string) ([]entity.ParticipantProgress, error) {
+	session, err := s.sessionRepo.GetByID(sessionID)
+	if err != nil {
+		return nil, fmt.Errorf("session not found: %w", err)
+	}
+
+	// Verify user is participant
+	isParticipant := false
+	for _, p := range session.Participants {
+		if p.UserID == userID {
+			isParticipant = true
+			break
+		}
+	}
+	if !isParticipant {
+		return nil, fmt.Errorf("user is not a participant")
+	}
+
+	// Get progress for all participants
+	progressList := make([]entity.ParticipantProgress, 0, len(session.Participants))
+	for _, p := range session.Participants {
+		total, completed, err := s.taskRepo.CountBySessionIDAndUserID(sessionID, p.UserID)
+		if err != nil {
+			// Log error but continue with other participants
+			continue
+		}
+
+		progressPercent := 0.0
+		if total > 0 {
+			progressPercent = (float64(completed) / float64(total)) * 100.0
+		}
+
+		progressList = append(progressList, entity.ParticipantProgress{
+			UserID:          p.UserID,
+			UserName:        p.UserName,
+			AvatarURL:       p.AvatarURL,
+			TasksCompleted:  completed,
+			TasksTotal:      total,
+			ProgressPercent: progressPercent,
+		})
+	}
+
+	return progressList, nil
+}
+
 func (s *SessionService) InviteUsers(sessionID string, userID string, userIDs []string) (int, string, error) {
 	session, err := s.sessionRepo.GetByID(sessionID)
 	if err != nil {

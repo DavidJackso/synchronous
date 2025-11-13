@@ -1,13 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { message } from 'antd';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks/redux';
 import { ProgressTracker } from '@/widgets/progress-tracker/ui';
+import { ParticipantsProgress } from '@/widgets/participants-progress/ui';
 import { Timer } from '@/widgets/timer/ui';
 import { TaskList } from '@/features/task-list/ui';
 import {
   selectSessionId,
   selectIsCompleted,
+  selectIsGroupMode,
 } from '@/entities/session/model/activeSessionSelectors';
 import {
   selectTasks,
@@ -18,7 +20,9 @@ import {
 } from '@/entities/session/model/selectors';
 import { startSession } from '@/entities/session/model/activeSessionSlice';
 import { sessionsApi, getErrorMessage } from '@/shared/api';
+import type { ParticipantProgress } from '@/shared/api';
 import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useWebSocketEvent } from '@/shared/hooks/useWebSocket';
 import type { Task } from '@/shared/types';
 import './styles.css';
 
@@ -38,8 +42,13 @@ export function FocusSessionPage() {
   // Active session state
   const reduxSessionId = useAppSelector(selectSessionId);
   const isCompleted = useAppSelector(selectIsCompleted);
+  const isGroupMode = useAppSelector(selectIsGroupMode);
   
   const sessionId = routeSessionId || reduxSessionId;
+  
+  // Track participant progress for group sessions
+  const [participantsProgress, setParticipantsProgress] = useState<ParticipantProgress[]>([]);
+  const [isLoadingProgress, setIsLoadingProgress] = useState(false);
 
   // Load session from backend if coming from route params
   useEffect(() => {
@@ -62,6 +71,11 @@ export function FocusSessionPage() {
               completed: task.completed,
               createdAt: task.createdAt,
             })),
+            participants: session.participants?.map(p => ({
+              id: p.userId,
+              name: p.userName,
+              avatar: p.avatarUrl,
+            })) || [],
           }));
         } catch (error) {
           console.error('[FocusSession] Failed to load session:', error);
@@ -110,6 +124,51 @@ export function FocusSessionPage() {
     }
   }, [sessionId, reduxSessionId, isMaxEnvironment, dispatch]);
   
+  // Load participants progress for group sessions
+  useEffect(() => {
+    if (!isGroupMode || !sessionId || !isMaxEnvironment) {
+      return;
+    }
+
+    const loadProgress = async () => {
+      setIsLoadingProgress(true);
+      try {
+        const response = await sessionsApi.getParticipantsProgress(sessionId);
+        setParticipantsProgress(response.progress);
+        console.log('[FocusSession] Loaded participants progress:', response.progress);
+      } catch (error) {
+        console.error('[FocusSession] Failed to load participants progress:', error);
+      } finally {
+        setIsLoadingProgress(false);
+      }
+    };
+
+    loadProgress();
+
+    // Poll for updates every 10 seconds
+    const interval = setInterval(loadProgress, 10000);
+    return () => clearInterval(interval);
+  }, [isGroupMode, sessionId, isMaxEnvironment]);
+  
+  // Listen for task completion events from WebSocket for real-time updates
+  useWebSocketEvent<{ sessionId: string; userId: string; taskId: string; completed: boolean }>(
+    'task_updated',
+    useCallback((data) => {
+      if (data.sessionId === sessionId && isGroupMode) {
+        // Reload progress when any participant completes a task
+        if (isMaxEnvironment) {
+          sessionsApi.getParticipantsProgress(sessionId)
+            .then(response => {
+              setParticipantsProgress(response.progress);
+            })
+            .catch(error => {
+              console.error('[FocusSession] Failed to update progress:', error);
+            });
+        }
+      }
+    }, [sessionId, isGroupMode, isMaxEnvironment])
+  );
+  
   // Redirect to report when session is completed
   useEffect(() => {
     if (isCompleted && sessionId) {
@@ -141,6 +200,14 @@ export function FocusSessionPage() {
         <div className="focus-session-page__bottom">
           <TaskList />
         </div>
+        
+        {/* Show participants progress for group sessions */}
+        {isGroupMode && (
+          <ParticipantsProgress
+            participants={participantsProgress}
+            isLoading={isLoadingProgress}
+          />
+        )}
       </div>
     </div>
   );

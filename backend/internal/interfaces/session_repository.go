@@ -25,6 +25,7 @@ type TaskRepository interface {
 	GetByID(id string) (*entity.Task, error)
 	GetBySessionID(sessionID string) ([]*entity.Task, error)
 	GetBySessionIDAndUserID(sessionID string, userID string) ([]*entity.Task, error) // Get user-specific tasks
+	CountBySessionIDAndUserID(sessionID string, userID string) (total int, completed int, error error) // Count tasks stats
 	Update(task *entity.Task) error
 	Delete(id string) error
 }

@@ -265,3 +265,16 @@ export interface ChatInfoResponse {
 export interface LeaderboardResponse {
   leaderboard: LeaderboardEntry[];
 }
+
+export interface ParticipantProgress {
+  userId: string;
+  userName: string;
+  avatarUrl: string | null;
+  tasksCompleted: number;
+  tasksTotal: number;
+  progressPercent: number; // 0-100
+}
+
+export interface ParticipantsProgressResponse {
+  progress: ParticipantProgress[];
+}

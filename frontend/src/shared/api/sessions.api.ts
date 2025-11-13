@@ -14,6 +14,7 @@ import type {
   SessionReportResponse,
   ChatInfoResponse,
   SessionStatusUpdateResponse,
+  ParticipantsProgressResponse,
 } from './types';
 
 // ============================================================================
@@ -163,6 +164,20 @@ export const completeSession = async (
 ): Promise<SessionReportResponse> => {
   const response = await apiClient.post<SessionReportResponse>(
     `/sessions/${sessionId}/complete`
+  );
+  return response.data;
+};
+
+/**
+ * Get participants progress for active session
+ * @param sessionId - Session UUID
+ * @returns Progress of all participants
+ */
+export const getParticipantsProgress = async (
+  sessionId: string
+): Promise<ParticipantsProgressResponse> => {
+  const response = await apiClient.get<ParticipantsProgressResponse>(
+    `/sessions/${sessionId}/participants/progress`
   );
   return response.data;
 };

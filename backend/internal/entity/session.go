@@ -110,3 +110,13 @@ type ParticipantReport struct {
 	TasksCompleted int     `json:"tasksCompleted"`
 	FocusTime      int     `json:"focusTime"` // в минутах
 }
+
+// ParticipantProgress represents real-time progress of a participant
+type ParticipantProgress struct {
+	UserID         string  `json:"userId"`
+	UserName       string  `json:"userName"`
+	AvatarURL      *string `json:"avatarUrl"`
+	TasksCompleted int     `json:"tasksCompleted"`
+	TasksTotal     int     `json:"tasksTotal"`
+	ProgressPercent float64 `json:"progressPercent"` // 0-100
+}

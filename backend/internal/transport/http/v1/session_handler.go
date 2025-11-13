@@ -65,6 +65,9 @@ func (h *SessionHandler) RegisterRoutes(router *gin.RouterGroup) {
 			session.PATCH("/tasks/:taskId", h.updateTask)
 			session.DELETE("/tasks/:taskId", h.deleteTask)
 
+			// Прогресс участников
+			session.GET("/participants/progress", h.getParticipantsProgress)
+
 			// Сообщения
 			session.GET("/messages", h.getMessages)
 			session.POST("/messages", h.sendMessage)
@@ -712,6 +715,31 @@ func (h *SessionHandler) deleteTask(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// getParticipantsProgress возвращает прогресс всех участников сессии
+func (h *SessionHandler) getParticipantsProgress(c *gin.Context) {
+	userID := h.GetUserID(c)
+	if userID == "" {
+		h.ErrorResponse(c, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	sessionID := c.Param("sessionId")
+	if sessionID == "" {
+		h.ErrorResponse(c, http.StatusBadRequest, "sessionId is required")
+		return
+	}
+
+	progress, err := h.sessionService.GetParticipantsProgress(sessionID, userID)
+	if err != nil {
+		h.ErrorResponse(c, http.StatusInternalServerError, "failed to get participants progress: "+err.Error())
+		return
+	}
+
+	h.SuccessResponse(c, http.StatusOK, gin.H{
+		"progress": progress,
+	})
 }
 
 // getMessages получает сообщения

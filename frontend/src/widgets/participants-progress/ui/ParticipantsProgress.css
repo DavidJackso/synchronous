@@ -1,0 +1,75 @@
+.participants-progress {
+  width: 100%;
+  padding: 16px;
+  background: var(--color-background-elevated);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.participants-progress--loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80px;
+}
+
+.participants-progress__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+.participants-progress__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.participants-progress__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.participants-progress__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.participants-progress__avatar {
+  flex-shrink: 0;
+}
+
+.participants-progress__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.participants-progress__name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.participants-progress__stats {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.participants-progress__bar {
+  width: 100%;
+  padding-left: 44px; /* Align with name (avatar + gap) */
+}
+
+.participants-progress__bar :global(.ant-progress-text) {
+  font-size: 12px;
+  font-weight: 500;
+}

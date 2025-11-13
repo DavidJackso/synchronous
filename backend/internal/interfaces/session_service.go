@@ -22,5 +22,6 @@ type SessionService interface {
 	UpdateTask(sessionID string, taskID string, userID string, completed bool) (*entity.Task, error)
 	AddTask(sessionID string, userID string, title string) (*entity.Task, error)
 	DeleteTask(sessionID string, taskID string, userID string) error
+	GetParticipantsProgress(sessionID string, userID string) ([]entity.ParticipantProgress, error)
 	InviteUsers(sessionID string, userID string, userIDs []string) (int, string, error)
 }

@@ -48,6 +48,27 @@ func (r *taskRepository) GetBySessionIDAndUserID(sessionID string, userID string
 	return tasks, nil
 }
 
+func (r *taskRepository) CountBySessionIDAndUserID(sessionID string, userID string) (total int, completed int, err error) {
+	var totalCount int64
+	var completedCount int64
+	
+	// Count total tasks
+	if err := r.db.Model(&entity.Task{}).
+		Where("session_id = ? AND user_id = ?", sessionID, userID).
+		Count(&totalCount).Error; err != nil {
+		return 0, 0, err
+	}
+	
+	// Count completed tasks
+	if err := r.db.Model(&entity.Task{}).
+		Where("session_id = ? AND user_id = ? AND completed = ?", sessionID, userID, true).
+		Count(&completedCount).Error; err != nil {
+		return 0, 0, err
+	}
+	
+	return int(totalCount), int(completedCount), nil
+}
+
 func (r *taskRepository) Update(task *entity.Task) error {
 	return r.db.Save(task).Error
 }
