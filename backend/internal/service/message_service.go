@@ -102,13 +102,8 @@ func (s *MessageService) SendMessage(sessionID string, userID string, text strin
 	}
 
 	// Отправляем сообщение через Max API
-	// Проверяем, что у пользователя есть MaxUserID
-	if user.MaxUserID == nil {
-		return nil, fmt.Errorf("user MaxUserID not found")
-	}
-
-	// Отправляем сообщение от имени пользователя в чат
-	// В Max API нужно отправлять сообщение от имени бота, но указывать пользователя
+	// MaxUserID обязательное поле (not null), поэтому проверка не нужна
+	// Отправляем сообщение от имени бота в чат
 	err = s.maxAPIService.SendMessage(*session.MaxChatID, text)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send message to Max API: %w", err)
