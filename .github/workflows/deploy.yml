@@ -94,7 +94,7 @@ jobs:
 
       - name: Create production Dockerfile
         run: |
-          cat > /tmp/Dockerfile.prod << 'EOF'
+          cat > Dockerfile.prod << 'EOF'
           FROM nginx:alpine
           COPY dist /usr/share/nginx/html
           COPY nginx.conf /etc/nginx/conf.d/default.conf
@@ -104,6 +104,7 @@ jobs:
           CMD ["nginx", "-g", "daemon off;"]
           EOF
           echo "✅ Production Dockerfile created"
+          ls -la Dockerfile.prod
 
       - name: Deploy backend to server
         uses: appleboy/scp-action@v0.1.7
@@ -120,30 +121,31 @@ jobs:
       - name: Create frontend archive
         run: |
           echo "Checking frontend files..."
+          pwd
           ls -la frontend/ || echo "frontend directory not found"
           ls -la frontend/dist/ | head -10 || echo "dist not found"
           test -f frontend/nginx.conf && echo "nginx.conf exists" || echo "nginx.conf NOT found"
           
-          echo "Creating archive..."
+          echo "Creating archive in workspace directory..."
           cd frontend
-          tar -czf /tmp/frontend-deploy.tar.gz dist nginx.conf
+          tar -czf ../frontend-deploy.tar.gz dist nginx.conf
           cd ..
           
           echo "Verifying archive..."
-          if [ ! -f /tmp/frontend-deploy.tar.gz ]; then
+          if [ ! -f frontend-deploy.tar.gz ]; then
             echo "❌ Archive was not created!"
             exit 1
           fi
           
-          ARCHIVE_SIZE=$(stat -f%z /tmp/frontend-deploy.tar.gz 2>/dev/null || stat -c%s /tmp/frontend-deploy.tar.gz 2>/dev/null || echo "0")
+          ARCHIVE_SIZE=$(stat -f%z frontend-deploy.tar.gz 2>/dev/null || stat -c%s frontend-deploy.tar.gz 2>/dev/null || echo "0")
           if [ "$ARCHIVE_SIZE" -eq 0 ]; then
             echo "❌ Archive is empty!"
             exit 1
           fi
           
           echo "✅ Frontend archive created successfully (size: $ARCHIVE_SIZE bytes)"
-          ls -lh /tmp/frontend-deploy.tar.gz
-          tar -tzf /tmp/frontend-deploy.tar.gz | head -10
+          ls -lh frontend-deploy.tar.gz
+          tar -tzf frontend-deploy.tar.gz | head -10
 
       - name: Deploy frontend archive
         uses: appleboy/scp-action@v0.1.7
@@ -153,7 +155,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           port: ${{ secrets.SERVER_PORT || '22' }}
-          source: "/tmp/frontend-deploy.tar.gz"
+          source: "frontend-deploy.tar.gz"
           target: "/tmp"
           debug: true
 
@@ -181,7 +183,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           port: ${{ secrets.SERVER_PORT || '22' }}
-          source: "/tmp/Dockerfile.prod"
+          source: "Dockerfile.prod"
           target: "/opt/synchronous/frontend/Dockerfile"
 
       - name: Run migrations
