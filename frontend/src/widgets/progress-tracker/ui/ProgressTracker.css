@@ -46,6 +46,35 @@
   border-radius: var(--radius-full);
 }
 
+.progress-tracker__bar-container {
+  position: relative;
+  width: 100%;
+}
+
+.progress-tracker__participants-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  pointer-events: none;
+}
+
+.progress-tracker__participant-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: all;
+  transition: left 0.3s ease;
+  z-index: 10;
+}
+
+.progress-tracker__participant-marker:hover {
+  z-index: 20;
+  transform: translate(-50%, -50%) scale(1.1);
+  transition: all 0.2s ease;
+}
+
 .progress-tracker__participants {
   display: flex;
   align-items: center;

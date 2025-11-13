@@ -12,7 +12,8 @@ import { sessionsApi, getErrorMessage } from '@/shared/api';
 import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
 import { useWebSocketEvent } from '@/shared/hooks/useWebSocket';
 import { useAuth } from '@/app/store';
-import type { Session, SessionParticipant } from '@/shared/api';
+import { ParticipantTasksForm } from '@/features/participant-tasks';
+import type { Session, SessionParticipant, Task } from '@/shared/api';
 import './styles.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -34,8 +35,10 @@ export function LobbyPage() {
   const [participants, setParticipants] = useState<SessionParticipant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isReady, setIsReady] = useState(false);
+  const [userTasks, setUserTasks] = useState<Task[]>([]);
 
   const sessionId = routeSessionId || reduxSessionId;
+  const isCreator = user && session?.creatorId === user.id;
 
   // Load session data from API
   useEffect(() => {
@@ -61,6 +64,7 @@ export function LobbyPage() {
         const response = await sessionsApi.getSessionById(sessionId);
         setSession(response.session);
         setParticipants(response.session.participants);
+        setUserTasks(response.session.tasks || []); // User's own tasks
         
         // Check if current user is ready
         const currentUserParticipant = response.session.participants.find(
@@ -211,8 +215,8 @@ export function LobbyPage() {
 
           <div className="lobby-page__details">
             <div className="lobby-page__detail-item">
-              <Text type="secondary">Задачи:</Text>
-              <Text strong>{tasks.length}</Text>
+              <Text type="secondary">Ваши задачи:</Text>
+              <Text strong>{isCreator ? tasks.length : userTasks.length}</Text>
             </div>
             <div className="lobby-page__detail-item">
               <Text type="secondary">Фокус:</Text>
@@ -224,6 +228,15 @@ export function LobbyPage() {
             </div>
           </div>
         </Card>
+
+        {/* Tasks Section - показываем форму создания задач для участников */}
+        {user && !isCreator && isMaxEnvironment && (
+          <ParticipantTasksForm 
+            sessionId={sessionId!} 
+            initialTasks={userTasks}
+            onTasksChange={setUserTasks}
+          />
+        )}
 
         {/* Participants Section */}
         <div className="lobby-page__section">
