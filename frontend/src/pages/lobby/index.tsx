@@ -45,8 +45,8 @@ export function LobbyPage() {
     }
 
     const loadSession = async () => {
+      // Dev mode: use mock data
       if (!isMaxEnvironment) {
-        // Mock data for dev mode
         setParticipants([
           { userId: '1', userName: 'Давид', avatarUrl: '', isReady: true, joinedAt: new Date().toISOString() },
           { userId: '2', userName: 'Мария', avatarUrl: '', isReady: true, joinedAt: new Date().toISOString() },
@@ -56,6 +56,7 @@ export function LobbyPage() {
         return;
       }
 
+      // Production: load real data from API
       try {
         const response = await sessionsApi.getSessionById(sessionId);
         setSession(response.session);
