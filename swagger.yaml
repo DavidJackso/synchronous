@@ -416,7 +416,7 @@ components:
           format: date-time
       required:
         - sessionId
-        - tasksCompleted
+        - tasksCompleted1
         - tasksTotal
         - focusTime
         - breakTime
