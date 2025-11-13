@@ -1,7 +1,7 @@
 import { useEffect, useState, memo } from 'react';
 import { useNavigate } from 'react-router';
 import { Progress, Button, Modal } from 'antd';
-import { PlayCircleOutlined, PauseCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { PlayCircleOutlined, PauseCircleOutlined, CloseCircleOutlined, FireOutlined, CoffeeOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks/redux';
 import {
   selectFormattedTime,
@@ -111,7 +111,15 @@ const TimerComponent = () => {
     <div className="timer">
       <div className="timer__phase-indicator">
         <span className={`timer__phase-label timer__phase-label--${phase}`}>
-          {phase === 'focus' ? '🎯 Фокус' : '☕ Перерыв'}
+          {phase === 'focus' ? (
+            <>
+              <FireOutlined /> Фокус
+            </>
+          ) : (
+            <>
+              <CoffeeOutlined /> Перерыв
+            </>
+          )}
         </span>
         <span className="timer__cycle">Цикл {currentCycle}</span>
       </div>
