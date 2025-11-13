@@ -117,17 +117,20 @@ jobs:
           target: "/opt/synchronous/backend"
           strip_components: 1
 
-      - name: Prepare frontend for deployment
-        run: |
-          # Создаем временную директорию с нужной структурой
-          mkdir -p /tmp/frontend-deploy
-          cp -r frontend/dist /tmp/frontend-deploy/
-          cp frontend/nginx.conf /tmp/frontend-deploy/
-          cp /tmp/Dockerfile.prod /tmp/frontend-deploy/Dockerfile
-          echo "✅ Frontend files prepared for deployment"
-          ls -la /tmp/frontend-deploy/
-
       - name: Deploy frontend to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
+          script: |
+            mkdir -p /opt/synchronous/frontend
+            cd /opt/synchronous/frontend
+            rm -rf dist nginx.conf Dockerfile || true
+
+      - name: Copy frontend files
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -135,10 +138,32 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           port: ${{ secrets.SERVER_PORT || '22' }}
-          source: "/tmp/frontend-deploy/dist,/tmp/frontend-deploy/nginx.conf,/tmp/frontend-deploy/Dockerfile"
+          source: "frontend/dist"
           target: "/opt/synchronous/frontend"
           strip_components: 1
-          debug: true
+
+      - name: Copy nginx.conf
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
+          source: "frontend/nginx.conf"
+          target: "/opt/synchronous/frontend/nginx.conf"
+          strip_components: 1
+
+      - name: Copy Dockerfile
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
+          source: "/tmp/Dockerfile.prod"
+          target: "/opt/synchronous/frontend/Dockerfile"
 
       - name: Run migrations
         uses: appleboy/ssh-action@v1.0.3
