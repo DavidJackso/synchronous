@@ -88,8 +88,8 @@
 }
 
 .task-list__checkbox .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: var(--color-bright-sage);
-  border-color: var(--color-bright-sage);
+  background-color: #52c41a;
+  border-color: #52c41a;
 }
 
 .task-list__task-title {

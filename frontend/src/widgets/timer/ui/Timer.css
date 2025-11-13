@@ -13,12 +13,15 @@
 }
 
 .timer__phase-label {
-  font-size: var(--font-size-lg);
+  font-size: 18px;
   font-weight: var(--font-weight-semibold);
-  padding: var(--spacing-xs) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-xl);
   border-radius: var(--radius-full);
   background: var(--color-background-soft);
   transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .timer__phase-label--focus {
@@ -32,9 +35,9 @@
 }
 
 .timer__cycle {
-  font-size: var(--font-size-md);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
+  font-size: 18px;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
 }
 
 .timer__circle {
@@ -71,9 +74,9 @@
 }
 
 .timer__btn-pause:hover {
-  background: var(--color-info) !important;
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  background: var(--color-primary) !important;
 }
 
 .timer__btn-stop {
@@ -82,6 +85,9 @@
   border-radius: var(--radius-lg) !important;
   font-size: var(--font-size-lg) !important;
   font-weight: var(--font-weight-semibold) !important;
+  background: #ff4d4f !important;
+  color: white !important;
+  border: none !important;
   box-shadow: var(--shadow-md);
   transition: all var(--transition-base);
 }
@@ -89,6 +95,7 @@
 .timer__btn-stop:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  background: #ff4d4f !important;
 }
 
 .timer__circle .ant-progress-text {
@@ -98,5 +105,15 @@
 }
 
 .timer__circle .ant-progress-inner {
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 0 20px rgba(64, 169, 255, 0.3), 0 0 40px rgba(64, 169, 255, 0.1);
+  border-radius: 50%;
+}
+
+.timer__circle .ant-progress-circle-path {
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px rgba(64, 169, 255, 0.6));
+}
+
+.timer__circle .ant-progress-circle-trail {
+  stroke: rgba(255, 255, 255, 0.08);
 }

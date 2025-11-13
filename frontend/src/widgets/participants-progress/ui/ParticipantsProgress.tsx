@@ -36,11 +36,8 @@ const ParticipantItem = memo<{ participant: ParticipantProgress }>(({ participan
         <Progress
           percent={Math.round(participant.progressPercent)}
           size="small"
-          strokeColor={{
-            '0%': 'var(--color-primary)',
-            '100%': 'var(--color-success)',
-          }}
-          trailColor="rgba(255, 255, 255, 0.08)"
+          strokeColor="#1890ff"
+          trailColor="rgba(100, 100, 100, 0.2)"
           showInfo={true}
           format={(percent) => `${percent}%`}
         />
