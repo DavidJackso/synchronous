@@ -62,7 +62,7 @@ export const ParticipantsProgress: React.FC<ParticipantsProgressProps> = ({
                   '0%': 'var(--color-primary)',
                   '100%': 'var(--color-success)',
                 }}
-                trailColor="var(--color-background-soft)"
+                trailColor="rgba(255, 255, 255, 0.08)"
                 showInfo={true}
                 format={(percent) => `${percent}%`}
               />

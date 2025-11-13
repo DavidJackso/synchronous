@@ -1,15 +1,17 @@
 import { Checkbox } from 'antd';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks/redux';
 import { selectSessionTasks } from '@/entities/session/model/activeSessionSelectors';
-import { toggleTask } from '@/entities/session/model/activeSessionSlice';
+import { toggleTaskAsync } from '@/entities/session/model/activeSessionSlice';
+import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
 import './TaskList.css';
 
 export const TaskList = () => {
   const dispatch = useAppDispatch();
+  const { isMaxEnvironment } = useMaxWebApp();
   const tasks = useAppSelector(selectSessionTasks);
   
   const handleToggle = (taskId: string) => {
-    dispatch(toggleTask(taskId));
+    dispatch(toggleTaskAsync({ taskId, isMaxEnvironment }));
   };
   
   if (tasks.length === 0) {

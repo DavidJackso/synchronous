@@ -134,8 +134,16 @@ export function FocusSessionPage() {
       setIsLoadingProgress(true);
       try {
         const response = await sessionsApi.getParticipantsProgress(sessionId);
-        setParticipantsProgress(response.progress);
-        console.log('[FocusSession] Loaded participants progress:', response.progress);
+        
+        // Only update if data actually changed (prevent unnecessary re-renders)
+        setParticipantsProgress(prev => {
+          const hasChanged = JSON.stringify(prev) !== JSON.stringify(response.progress);
+          if (hasChanged) {
+            console.log('[FocusSession] Progress updated:', response.progress);
+            return response.progress;
+          }
+          return prev;
+        });
       } catch (error) {
         console.error('[FocusSession] Failed to load participants progress:', error);
       } finally {
@@ -159,7 +167,10 @@ export function FocusSessionPage() {
         if (isMaxEnvironment) {
           sessionsApi.getParticipantsProgress(sessionId)
             .then(response => {
-              setParticipantsProgress(response.progress);
+              setParticipantsProgress(prev => {
+                const hasChanged = JSON.stringify(prev) !== JSON.stringify(response.progress);
+                return hasChanged ? response.progress : prev;
+              });
             })
             .catch(error => {
               console.error('[FocusSession] Failed to update progress:', error);

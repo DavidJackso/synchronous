@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Task, User } from '@/shared/types';
-import { sessionsApi } from '@/shared/api';
+import { sessionsApi, tasksApi } from '@/shared/api';
 
 export type SessionPhase = 'focus' | 'break';
 export type SessionStatus = 'pending' | 'running' | 'paused' | 'completed';
@@ -149,6 +149,40 @@ export const completeSessionAsync = createAsyncThunk<
   }
 );
 
+/**
+ * Toggle task completion with backend sync
+ */
+export const toggleTaskAsync = createAsyncThunk<
+  { task: { id: string; completed: boolean } },
+  { taskId: string; isMaxEnvironment: boolean },
+  { state: { activeSession: ActiveSessionState } }
+>(
+  'activeSession/toggleTaskAsync',
+  async ({ taskId, isMaxEnvironment }, { getState }) => {
+    const { sessionId, tasks } = getState().activeSession;
+    
+    if (!sessionId) {
+      throw new Error('No active session');
+    }
+
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) {
+      throw new Error('Task not found');
+    }
+
+    const newCompleted = !task.completed;
+
+    // Only call API in production (MAX environment)
+    if (isMaxEnvironment) {
+      await tasksApi.updateTask(sessionId, taskId, newCompleted);
+    } else {
+      console.log('[toggleTaskAsync] Dev mode - updating locally');
+    }
+    
+    return { task: { id: taskId, completed: newCompleted } };
+  }
+);
+
 // ============================================================================
 // Slice
 // ============================================================================
@@ -285,6 +319,16 @@ const activeSessionSlice = createSlice({
         console.error('[completeSessionAsync] Failed:', action.error);
         // Still complete locally even if backend fails
         state.status = 'completed';
+      })
+      // Toggle task
+      .addCase(toggleTaskAsync.fulfilled, (state, action) => {
+        const task = state.tasks.find(t => t.id === action.payload.task.id);
+        if (task) {
+          task.completed = action.payload.task.completed;
+        }
+      })
+      .addCase(toggleTaskAsync.rejected, (_state, action) => {
+        console.error('[toggleTaskAsync] Failed:', action.error);
       });
   },
 });
