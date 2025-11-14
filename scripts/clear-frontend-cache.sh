@@ -6,6 +6,20 @@ set -e
 
 echo "🧹 Очистка кеша frontend..."
 
+# Проверка наличия сети
+echo "0. Проверка docker-сети..."
+if docker network inspect synchronous_network >/dev/null 2>&1; then
+    echo "   ✅ сеть synchronous_network существует"
+else
+    docker network create synchronous_network
+    echo "   ✅ сеть synchronous_network создана"
+fi
+
+# Подключаем nginx к сети (если контейнер существует)
+if docker ps --format '{{.Names}}' | grep -q '^synchronous_nginx$'; then
+    docker network connect synchronous_network synchronous_nginx 2>/dev/null || true
+fi
+
 # Остановка и удаление контейнера
 echo "1. Остановка frontend контейнера..."
 docker stop synchronous_frontend 2>/dev/null || echo "   Контейнер не запущен"
@@ -40,6 +54,7 @@ echo "5. Запуск нового контейнера..."
 docker run -d \
     --name synchronous_frontend \
     --network synchronous_network \
+    --network-alias frontend \
     -p 3000:80 \
     --restart unless-stopped \
     synchronous_frontend:latest

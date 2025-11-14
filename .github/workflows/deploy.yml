@@ -215,6 +215,13 @@ jobs:
             # Restart frontend container (force rebuild)
             cd /opt/synchronous/frontend
             if [ -f Dockerfile ]; then
+              echo "Ensuring docker network synchronous_network exists..."
+              docker network inspect synchronous_network >/dev/null 2>&1 || docker network create synchronous_network
+              if docker ps --format '{{.Names}}' | grep -q '^synchronous_nginx$'; then
+                echo "Connecting nginx container to synchronous_network (if needed)..."
+                docker network connect synchronous_network synchronous_nginx 2>/dev/null || true
+              fi
+              
               echo "Stopping old frontend container..."
               docker stop synchronous_frontend 2>/dev/null || true
               docker rm synchronous_frontend 2>/dev/null || true
@@ -226,6 +233,7 @@ jobs:
               docker run -d \
                 --name synchronous_frontend \
                 --network synchronous_network \
+                --network-alias frontend \
                 -p 3000:80 \
                 --restart unless-stopped \
                 synchronous_frontend:latest
