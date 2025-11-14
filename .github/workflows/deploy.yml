@@ -77,6 +77,8 @@ jobs:
           source: "frontend/dist,frontend/nginx.conf,frontend/Dockerfile"
           target: "/opt/synchronous/frontend"
           strip_components: 1
+          overwrite: true
+          rm: true
 
       - name: Run migrations and restart services
         uses: appleboy/ssh-action@v1.0.3
