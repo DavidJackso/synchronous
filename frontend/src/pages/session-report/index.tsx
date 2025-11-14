@@ -125,6 +125,24 @@ export function SessionReportPage() {
   const [historyEntries, setHistoryEntries] = useState<SessionHistoryEntry[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
+  // Calculate stats from report or fallback to local data
+  const fallbackCompletedTasks = localTasks.filter((t) => t.completed).length;
+  const tasksCompleted = report?.tasksCompleted ?? fallbackCompletedTasks;
+  const tasksTotal = report?.tasksTotal ?? localTasks.length;
+  const cyclesCompleted = report?.cyclesCompleted ?? currentCycle ?? 1;
+  const focusTime = report?.focusTime ?? cyclesCompleted * 25;
+  const breakTime = report?.breakTime ?? cyclesCompleted * 5;
+
+  const completionRate = tasksTotal > 0 ? Math.round((tasksCompleted / tasksTotal) * 100) : 0;
+  const formattedCompletionDate = report?.completedAt
+    ? new Date(report.completedAt).toLocaleString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null;
+
   // Load session report data
   useEffect(() => {
     if (!sessionId) {
@@ -198,14 +216,6 @@ export function SessionReportPage() {
     loadReportData();
   }, [sessionId, isGroupMode, isMaxEnvironment, isReady, navigate]);
 
-  // Calculate stats from report or fallback to local data
-  const fallbackCompletedTasks = localTasks.filter((t) => t.completed).length;
-  const tasksCompleted = report?.tasksCompleted ?? fallbackCompletedTasks;
-  const tasksTotal = report?.tasksTotal ?? localTasks.length;
-  const cyclesCompleted = report?.cyclesCompleted ?? currentCycle ?? 1;
-  const focusTime = report?.focusTime ?? cyclesCompleted * 25;
-  const breakTime = report?.breakTime ?? cyclesCompleted * 5;
-
   // Transform API leaderboard entries to component format
   const leaderboardEntries: ComponentLeaderboardEntry[] = (
     report?.participants || leaderboard
@@ -224,6 +234,21 @@ export function SessionReportPage() {
           : (p.tasksCompleted ?? 0) * 100 + (p.focusTime ?? 0),
     }))
     .sort((a, b) => b.score - a.score || b.tasksCompleted - a.tasksCompleted);
+
+  const heroSummary = isGroupMode
+    ? `Команда закрыла ${completionRate}% плановых задач и сфокусирована ${focusTime} мин`
+    : `Вы закрыли ${completionRate}% задач и сфокусированы ${focusTime} мин`;
+
+  const insights: string[] = [
+    tasksTotal > 0 ? `Закрыто ${tasksCompleted} из ${tasksTotal} задач` : 'Задачи для сессии не заданы',
+    `Фокус ${focusTime} мин • Перерывы ${breakTime} мин`,
+    `Циклов завершено: ${cyclesCompleted}`,
+  ];
+
+  if (isGroupMode && leaderboardEntries.length > 0) {
+    const leader = leaderboardEntries[0];
+    insights.push(`${leader.user.name} лидирует с результатом ${leader.score} баллов`);
+  }
 
   const handleGoHome = () => {
     dispatch(resetSessionSetup());
@@ -276,31 +301,6 @@ export function SessionReportPage() {
         <Spin size="large" />
       </div>
     );
-  }
-
-  const completionRate = tasksTotal > 0 ? Math.round((tasksCompleted / tasksTotal) * 100) : 0;
-  const formattedCompletionDate = report?.completedAt
-    ? new Date(report.completedAt).toLocaleString('ru-RU', {
-        day: 'numeric',
-        month: 'long',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : null;
-
-  const heroSummary = isGroupMode
-    ? `Команда закрыла ${completionRate}% плановых задач и сфокусирована ${focusTime} мин`
-    : `Вы закрыли ${completionRate}% задач и сфокусированы ${focusTime} мин`;
-
-  const insights: string[] = [
-    tasksTotal > 0 ? `Закрыто ${tasksCompleted} из ${tasksTotal} задач` : 'Задачи для сессии не заданы',
-    `Фокус ${focusTime} мин • Перерывы ${breakTime} мин`,
-    `Циклов завершено: ${cyclesCompleted}`,
-  ];
-
-  if (isGroupMode && leaderboardEntries.length > 0) {
-    const leader = leaderboardEntries[0];
-    insights.push(`${leader.user.name} лидирует с результатом ${leader.score} баллов`);
   }
 
   useEffect(() => {
