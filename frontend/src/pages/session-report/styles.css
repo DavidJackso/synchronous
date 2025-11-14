@@ -1,52 +1,140 @@
 .session-report-page {
   min-height: calc(100vh - 80px);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl);
   background: var(--color-background);
 }
 
 .session-report-page__container {
-  max-width: 768px;
+  max-width: 960px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+.session-report-page__hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
+  justify-content: space-between;
+  padding: var(--spacing-2xl);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+}
+
+.session-report-page__hero-info {
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.session-report-page__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-pastel-mint);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  width: fit-content;
+  text-transform: uppercase;
+}
+
+.session-report-page__hero h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.session-report-page__summary {
+  color: var(--color-text-secondary);
+  font-size: 16px;
+}
+
+.session-report-page__meta {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.session-report-page__hero-stats {
+  flex: 1 1 240px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--spacing-lg);
 }
 
-.session-report-page__tabs {
-  animation: slideUp 0.4s ease;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.session-report-page__tabs-component {
-  background: white;
+.session-report-page__hero-stat {
   padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-white);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.session-report-page__hero-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.session-report-page__hero-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.session-report-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--spacing-2xl);
+}
+
+.session-report-page__insights {
+  padding: var(--spacing-2xl);
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
 }
 
-.session-report-page__tabs-component .ant-tabs-nav {
-  margin-bottom: var(--spacing-lg) !important;
+.session-report-page__insights h3 {
+  margin: 0 0 var(--spacing-lg);
+  font-size: 20px;
 }
 
-.session-report-page__tabs-component .ant-tabs-tab {
-  font-size: var(--font-size-lg) !important;
-  font-weight: var(--font-weight-semibold) !important;
-  padding: var(--spacing-md) var(--spacing-lg) !important;
+.session-report-page__insights-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: 0;
+  margin: 0;
 }
 
-.session-report-page__tabs-component .ant-tabs-tab-active {
-  background: var(--color-sky) !important;
-  border-radius: var(--radius-md) !important;
+.session-report-page__insights-list li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 16px;
+  color: var(--color-text);
+}
+
+.session-report-page__insights-list li::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  top: 8px;
+  left: 0;
+  border-radius: 50%;
+  background: var(--color-bright-sage);
 }
 
 .session-report-page__home-btn {
@@ -61,4 +149,18 @@
 .session-report-page__home-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 768px) {
+  .session-report-page {
+    padding: var(--spacing-lg);
+  }
+
+  .session-report-page__hero {
+    padding: var(--spacing-xl);
+  }
+
+  .session-report-page__hero h1 {
+    font-size: 26px;
+  }
 }

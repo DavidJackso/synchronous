@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Tabs, Spin, message } from 'antd';
+import { Button, Spin, message } from 'antd';
 import { useNavigate, useParams } from 'react-router';
 import { HomeOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '@/shared/hooks/redux';
@@ -11,13 +11,11 @@ import {
 import { resetSessionSetup } from '@/entities/session/model/sessionSetupSlice';
 import { SessionStats } from '@/widgets/session-stats/ui';
 import { Leaderboard } from '@/widgets/leaderboard/ui';
-import { ChatWidget } from '@/widgets/chat/ui';
 import { AIReportTeaser } from '@/features/ai-assistant/ui';
-import { sessionsApi, messagesApi, leaderboardApi } from '@/shared/api';
+import { sessionsApi, leaderboardApi } from '@/shared/api';
 import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
-import { useAuth } from '@/app/store';
 import type { Task } from '@/shared/types';
-import type { SessionReport, LeaderboardEntry as ApiLeaderboardEntry, Message } from '@/shared/api';
+import type { SessionReport, LeaderboardEntry as ApiLeaderboardEntry } from '@/shared/api';
 import './styles.css';
 
 // Leaderboard component expects different type
@@ -34,24 +32,20 @@ interface ComponentLeaderboardEntry {
 
 /**
  * Session Report Page
- * Shows session results with stats, leaderboard, and chat
+ * Shows session results with stats, leaderboard, и ключевые выводы
  */
 export function SessionReportPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { sessionId } = useParams<{ sessionId: string }>();
   const { isMaxEnvironment, isReady } = useMaxWebApp();
-  const { user } = useAuth();
-
   const isGroupMode = useAppSelector(selectIsGroupMode);
   const localTasks = useAppSelector(selectSessionTasks) as Task[];
   const currentCycle = useAppSelector(selectCurrentCycle);
 
   const [report, setReport] = useState<SessionReport | null>(null);
   const [leaderboard, setLeaderboard] = useState<ApiLeaderboardEntry[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>('chat'); // По умолчанию открываем вкладку "Чат"
 
   // Load session report data
   useEffect(() => {
@@ -83,12 +77,13 @@ export function SessionReportPage() {
         let reportData: SessionReport;
         if (session.status === 'completed') {
           // Сессия уже завершена, формируем отчет из данных сессии
-          const completedTasks = session.tasks.filter(t => t.completed).length;
+          const sessionTasks = session.tasks ?? [];
+          const completedTasks = sessionTasks.filter((t) => t.completed).length;
           const cycles = currentCycle || 1; // Используем currentCycle из Redux
           reportData = {
             sessionId: session.id,
             tasksCompleted: completedTasks,
-            tasksTotal: session.tasks.length,
+            tasksTotal: sessionTasks.length,
             focusTime: session.focusDuration * cycles,
             breakTime: session.breakDuration * cycles,
             cyclesCompleted: cycles,
@@ -114,24 +109,6 @@ export function SessionReportPage() {
           const leaderboardResponse = await leaderboardApi.getSessionLeaderboard(sessionId);
           setLeaderboard(leaderboardResponse.leaderboard);
         }
-
-          // Load chat messages (для всех типов сессий)
-          try {
-            const messagesResponse = await messagesApi.getMessages(sessionId);
-            setMessages(messagesResponse.messages);
-          } catch (error) {
-            console.error('[SessionReport] Failed to load messages:', error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            
-            // Если чат не создан, это нормально - показываем пустой чат
-            if (errorMessage.includes('chat not created')) {
-              console.log('[SessionReport] Chat not created yet, showing empty chat');
-              setMessages([]);
-            } else {
-              // Другие ошибки - логируем, но продолжаем работу
-              console.warn('[SessionReport] Error loading messages, but continuing:', errorMessage);
-            }
-          }
       } catch (error) {
         console.error('[SessionReport] Failed to load report:', error);
         message.error('Не удалось загрузить отчёт сессии');
@@ -144,71 +121,35 @@ export function SessionReportPage() {
   }, [sessionId, isGroupMode, isMaxEnvironment, isReady, navigate]);
 
   // Calculate stats from report or fallback to local data
-  const tasksCompleted = report?.tasksCompleted ?? localTasks.filter((t) => t.completed).length;
+  const fallbackCompletedTasks = localTasks.filter((t) => t.completed).length;
+  const tasksCompleted = report?.tasksCompleted ?? fallbackCompletedTasks;
   const tasksTotal = report?.tasksTotal ?? localTasks.length;
-  const focusTime = report?.focusTime ?? currentCycle * 25;
-  const breakTime = report?.breakTime ?? currentCycle * 5;
+  const cyclesCompleted = report?.cyclesCompleted ?? currentCycle ?? 1;
+  const focusTime = report?.focusTime ?? cyclesCompleted * 25;
+  const breakTime = report?.breakTime ?? cyclesCompleted * 5;
 
   // Transform API leaderboard entries to component format
   const leaderboardEntries: ComponentLeaderboardEntry[] = (
     report?.participants || leaderboard
-  ).map((p) => ({
-    user: {
-      id: p.userId,
-      name: p.userName,
-      avatar: p.avatarUrl,
-    },
-    tasksCompleted: p.tasksCompleted,
-    focusTime: p.focusTime,
-    score: 'score' in p ? (p as ApiLeaderboardEntry).score : p.tasksCompleted * 100 + p.focusTime,
-  }));
-
-  // Transform API messages to component format
-  const chatMessages = messages.map((msg) => ({
-    id: msg.id,
-    userId: msg.userId,
-    userName: msg.userName,
-    avatar: msg.avatarUrl,
-    text: msg.text,
-    createdAt: msg.createdAt,
-  }));
+  )
+    .map((p) => ({
+      user: {
+        id: p.userId,
+        name: p.userName,
+        avatar: p.avatarUrl,
+      },
+      tasksCompleted: p.tasksCompleted ?? 0,
+      focusTime: p.focusTime ?? 0,
+      score:
+        'score' in p
+          ? (p as ApiLeaderboardEntry).score
+          : (p.tasksCompleted ?? 0) * 100 + (p.focusTime ?? 0),
+    }))
+    .sort((a, b) => b.score - a.score || b.tasksCompleted - a.tasksCompleted);
 
   const handleGoHome = () => {
     dispatch(resetSessionSetup());
     navigate('/');
-  };
-
-  const handleSendMessage = async (text: string) => {
-    if (!sessionId) {
-      message.error('Ошибка: не найден ID сессии');
-      return;
-    }
-
-    try {
-      console.log('[SessionReport] Sending message:', text);
-      const response = await messagesApi.sendMessage(sessionId, text);
-      console.log('[SessionReport] Message sent successfully:', response);
-      
-      // Добавляем отправленное сообщение в список (оптимистичное обновление)
-      const newMessage: Message = {
-        id: response.message.id,
-        userId: response.message.userId,
-        userName: response.message.userName,
-        avatarUrl: response.message.avatarUrl,
-        text: response.message.text,
-        createdAt: response.message.createdAt,
-      };
-      setMessages((prev) => [...prev, newMessage]);
-    } catch (error) {
-      console.error('[SessionReport] Failed to send message:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      if (errorMessage.includes('chat not created')) {
-        message.error('Чат еще не создан. Дождитесь завершения сессии и создания чата для обсуждения.');
-      } else {
-        message.error(`Не удалось отправить сообщение: ${errorMessage}`);
-      }
-    }
   };
 
   const handleUpgrade = () => {
@@ -224,54 +165,84 @@ export function SessionReportPage() {
     );
   }
 
-  const tabItems = [
-    {
-      key: 'chat',
-      label: '💬 Чат',
-      children: (
-        <ChatWidget
-          messages={chatMessages}
-          currentUserId={user?.id || ''}
-          onSendMessage={handleSendMessage}
-        />
-      ),
-    },
+  const completionRate = tasksTotal > 0 ? Math.round((tasksCompleted / tasksTotal) * 100) : 0;
+  const formattedCompletionDate = report?.completedAt
+    ? new Date(report.completedAt).toLocaleString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null;
+
+  const heroSummary = isGroupMode
+    ? `Команда закрыла ${completionRate}% плановых задач и сфокусирована ${focusTime} мин`
+    : `Вы закрыли ${completionRate}% задач и сфокусированы ${focusTime} мин`;
+
+  const insights: string[] = [
+    tasksTotal > 0 ? `Закрыто ${tasksCompleted} из ${tasksTotal} задач` : 'Задачи для сессии не заданы',
+    `Фокус ${focusTime} мин • Перерывы ${breakTime} мин`,
+    `Циклов завершено: ${cyclesCompleted}`,
   ];
 
-  // Добавляем вкладку лидерборда только для групповых сессий
   if (isGroupMode && leaderboardEntries.length > 0) {
-    tabItems.unshift({
-      key: 'leaderboard',
-      label: '🏆 Лидерборд',
-      children: <Leaderboard entries={leaderboardEntries} />,
-    });
+    const leader = leaderboardEntries[0];
+    insights.push(`${leader.user.name} лидирует с результатом ${leader.score} баллов`);
   }
 
   return (
     <div className="session-report-page">
       <div className="session-report-page__container">
-        {/* Session Statistics */}
-        <SessionStats
-          tasksCompleted={tasksCompleted}
-          tasksTotal={tasksTotal}
-          focusTime={focusTime}
-          breakTime={breakTime}
-          cyclesCompleted={currentCycle}
-        />
+        <section className="session-report-page__hero">
+          <div className="session-report-page__hero-info">
+            <span className="session-report-page__status">Сессия завершена</span>
+            <h1>Отчёт по сессии</h1>
+            <p className="session-report-page__summary">{heroSummary}</p>
+            {formattedCompletionDate && (
+              <span className="session-report-page__meta">Закончено {formattedCompletionDate}</span>
+            )}
+          </div>
+          <div className="session-report-page__hero-stats">
+            <div className="session-report-page__hero-stat">
+              <span className="session-report-page__hero-label">Выполнение</span>
+              <span className="session-report-page__hero-value">{completionRate}%</span>
+            </div>
+            <div className="session-report-page__hero-stat">
+              <span className="session-report-page__hero-label">Задачи</span>
+              <span className="session-report-page__hero-value">
+                {tasksCompleted}/{tasksTotal || '—'}
+              </span>
+            </div>
+            <div className="session-report-page__hero-stat">
+              <span className="session-report-page__hero-label">Циклы</span>
+              <span className="session-report-page__hero-value">{cyclesCompleted}</span>
+            </div>
+          </div>
+        </section>
 
-        {/* Session Tabs (Chat always available, Leaderboard for group sessions) */}
-        <div className="session-report-page__tabs">
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            defaultActiveKey="chat"
-            items={tabItems}
-            size="large"
-            className="session-report-page__tabs-component"
+        <div className="session-report-page__grid">
+          <SessionStats
+            tasksCompleted={tasksCompleted}
+            tasksTotal={tasksTotal}
+            focusTime={focusTime}
+            breakTime={breakTime}
+            cyclesCompleted={cyclesCompleted}
           />
+
+          {isGroupMode && leaderboardEntries.length > 0 && (
+            <Leaderboard entries={leaderboardEntries} />
+          )}
         </div>
 
-        {/* AI Report Teaser */}
+        <section className="session-report-page__insights">
+          <h3>Ключевые выводы</h3>
+          <ul className="session-report-page__insights-list">
+            {insights.map((insight) => (
+              <li key={insight}>{insight}</li>
+            ))}
+          </ul>
+        </section>
+
         <AIReportTeaser onUpgrade={handleUpgrade} />
 
         {/* Home Button */}

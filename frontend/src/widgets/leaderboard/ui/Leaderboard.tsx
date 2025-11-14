@@ -21,6 +21,10 @@ interface LeaderboardProps {
  * Displays ranked participants with their stats
  */
 export const Leaderboard = ({ entries }: LeaderboardProps) => {
+  const sortedEntries = [...entries].sort(
+    (a, b) => b.score - a.score || b.tasksCompleted - a.tasksCompleted,
+  );
+
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:
@@ -51,7 +55,7 @@ export const Leaderboard = ({ entries }: LeaderboardProps) => {
       </div>
 
       <div className="leaderboard__list">
-        {entries.map((entry, index) => {
+        {sortedEntries.map((entry, index) => {
           const rank = index + 1;
           return (
             <div
@@ -97,7 +101,7 @@ export const Leaderboard = ({ entries }: LeaderboardProps) => {
         })}
       </div>
 
-      {entries.length === 0 && (
+      {sortedEntries.length === 0 && (
         <div className="leaderboard__empty">
           <Text type="secondary">Нет данных для отображения</Text>
         </div>

@@ -1,7 +1,7 @@
 import type { RootState } from '@/app/store';
 
 /**
- * Selectors for session setup state
+ * Sel12132ectors for session setup state
  */
 export const selectSessionSetup = (state: RootState) => state.sessionSetup;
 export const selectTasks = (state: RootState) => state.sessionSetup.tasks;

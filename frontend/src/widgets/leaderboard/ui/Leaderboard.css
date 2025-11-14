@@ -1,6 +1,8 @@
 .leaderboard {
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-sm) !important;
+  border: 1px solid var(--color-border) !important;
+  background: var(--color-surface) !important;
 }
 
 .leaderboard__header {
@@ -31,30 +33,32 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   border-radius: var(--radius-md);
-  background: var(--color-background-soft);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   transition: all var(--transition-base);
 }
 
 .leaderboard__entry:hover {
-  background: var(--color-sky);
   transform: translateX(4px);
+  border-color: var(--color-pastel-lavender);
+  box-shadow: var(--shadow-sm);
 }
 
 .leaderboard__entry--gold {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  background: linear-gradient(135deg, rgba(253, 232, 201, 0.8), rgba(255, 255, 255, 0.95));
+  border-color: #f1d28f;
 }
 
 .leaderboard__entry--silver {
-  background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
-  box-shadow: 0 4px 12px rgba(192, 192, 192, 0.3);
+  background: linear-gradient(135deg, rgba(223, 229, 240, 0.85), rgba(255, 255, 255, 0.95));
+  border-color: #d3d9e5;
 }
 
 .leaderboard__entry--bronze {
-  background: linear-gradient(135deg, #cd7f32 0%, #e6a664 100%);
-  box-shadow: 0 4px 12px rgba(205, 127, 50, 0.3);
+  background: linear-gradient(135deg, rgba(245, 214, 196, 0.85), rgba(255, 255, 255, 0.95));
+  border-color: #e4b894;
 }
 
 .leaderboard__rank {
