@@ -58,6 +58,7 @@ export type SessionStatus = 'pending' | 'active' | 'paused' | 'completed';
 export interface Task {
   id: string;
   title: string;
+  userId?: string | null;
   completed: boolean;
   completedAt: string | null;
   createdAt: string;
@@ -75,6 +76,7 @@ export interface Session {
   id: string;
   mode: SessionMode;
   status: SessionStatus;
+  currentCycle?: number;
   tasks: Task[];
   focusDuration: number;
   breakDuration: number;

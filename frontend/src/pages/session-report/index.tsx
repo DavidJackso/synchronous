@@ -175,7 +175,38 @@ export function SessionReportPage() {
           // Сессия уже завершена, формируем отчет из данных сессии
           const sessionTasks = session.tasks ?? [];
           const completedTasks = sessionTasks.filter((t) => t.completed).length;
-          const cycles = currentCycle || 1; // Используем currentCycle из Redux
+          const cycles = currentCycle || session.currentCycle || 1; // запасной вариант
+
+          const participantsStats = new Map<
+            string,
+            {
+              userId: string;
+              userName: string;
+              avatarUrl: string;
+              tasksCompleted: number;
+            }
+          >();
+
+          (session.participants ?? []).forEach((participant) => {
+            participantsStats.set(participant.userId, {
+              userId: participant.userId,
+              userName: participant.userName,
+              avatarUrl: participant.avatarUrl ?? '',
+              tasksCompleted: 0,
+            });
+          });
+
+          sessionTasks.forEach((task) => {
+            if (task.completed && task.userId && participantsStats.has(task.userId)) {
+              const stats = participantsStats.get(task.userId);
+              if (stats) {
+                stats.tasksCompleted += 1;
+              }
+            }
+          });
+
+          const participantFocusTime = session.focusDuration * cycles;
+
           reportData = {
             sessionId: session.id,
             tasksCompleted: completedTasks,
@@ -184,12 +215,12 @@ export function SessionReportPage() {
             breakTime: session.breakDuration * cycles,
             cyclesCompleted: cycles,
             completedAt: session.completedAt || new Date().toISOString(),
-            participants: session.participants.map(p => ({
-              userId: p.userId,
-              userName: p.userName,
-              avatarUrl: p.avatarUrl,
-              tasksCompleted: 0, // TODO: получить из статистики
-              focusTime: 0, // TODO: получить из статистики
+            participants: Array.from(participantsStats.values()).map((stats) => ({
+              userId: stats.userId,
+              userName: stats.userName,
+              avatarUrl: stats.avatarUrl,
+              tasksCompleted: stats.tasksCompleted,
+              focusTime: participantFocusTime,
             })),
           };
         } else {
