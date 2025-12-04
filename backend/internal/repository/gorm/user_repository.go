@@ -30,9 +30,9 @@ func (r *userRepository) GetByID(id string) (*entity.User, error) {
 	return &user, nil
 }
 
-func (r *userRepository) GetByMaxUserID(maxUserID int64) (*entity.User, error) {
+func (r *userRepository) GetByTelegramUserID(telegramUserID int64) (*entity.User, error) {
 	var user entity.User
-	err := r.db.Where("max_user_id = ?", maxUserID).First(&user).Error
+	err := r.db.Where("telegram_user_id = ?", telegramUserID).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil

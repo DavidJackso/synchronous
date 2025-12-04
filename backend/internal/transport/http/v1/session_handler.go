@@ -616,11 +616,11 @@ func (h *SessionHandler) sessionToMap(session *entity.Session) gin.H {
 	if session.CompletedAt != nil {
 		sessionMap["completedAt"] = session.CompletedAt.Format(time.RFC3339)
 	}
-	if session.MaxChatID != nil {
-		sessionMap["maxChatId"] = *session.MaxChatID
+	if session.TelegramChatID != nil {
+		sessionMap["telegramChatId"] = *session.TelegramChatID
 	}
-	if session.MaxChatLink != nil {
-		sessionMap["maxChatLink"] = *session.MaxChatLink
+	if session.TelegramChatLink != nil {
+		sessionMap["telegramChatLink"] = *session.TelegramChatLink
 	}
 
 	return sessionMap

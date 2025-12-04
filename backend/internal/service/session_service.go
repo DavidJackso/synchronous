@@ -9,27 +9,27 @@ import (
 	"github.com/google/uuid"
 	"github.com/rnegic/synchronous/internal/entity"
 	"github.com/rnegic/synchronous/internal/interfaces"
-	"github.com/rnegic/synchronous/pkg/maxapi"
+	"github.com/rnegic/synchronous/pkg/telegramapi"
 )
 
 type SessionService struct {
-	sessionRepo   interfaces.SessionRepository
-	taskRepo      interfaces.TaskRepository
-	userRepo      interfaces.UserRepository
-	maxAPIService interfaces.MaxAPIService
+	sessionRepo        interfaces.SessionRepository
+	taskRepo           interfaces.TaskRepository
+	userRepo           interfaces.UserRepository
+	telegramAPIService interfaces.TelegramAPIService
 }
 
 func NewSessionService(
 	sessionRepo interfaces.SessionRepository,
 	taskRepo interfaces.TaskRepository,
 	userRepo interfaces.UserRepository,
-	maxAPIService interfaces.MaxAPIService,
+	telegramAPIService interfaces.TelegramAPIService,
 ) interfaces.SessionService {
 	return &SessionService{
-		sessionRepo:   sessionRepo,
-		taskRepo:      taskRepo,
-		userRepo:      userRepo,
-		maxAPIService: maxAPIService,
+		sessionRepo:        sessionRepo,
+		taskRepo:           taskRepo,
+		userRepo:           userRepo,
+		telegramAPIService: telegramAPIService,
 	}
 }
 
@@ -512,9 +512,9 @@ func (s *SessionService) hasAccessToSession(session *entity.Session, userID stri
 }
 
 // createDiscussionChat создает чат для обсуждения после завершения сессии
-// Отправляет сообщение создателю с кнопкой для создания чата в Max
+// Отправляет сообщение создателю с кнопкой для создания чата в Telegram
 func (s *SessionService) createDiscussionChat(session *entity.Session) error {
-	// Получаем создателя сессии для получения его MaxUserID
+	// Получаем создателя сессии для получения его TelegramUserID
 	creator, err := s.userRepo.GetByID(session.CreatorID)
 	if err != nil {
 		return fmt.Errorf("failed to get creator: %w", err)
@@ -529,7 +529,7 @@ func (s *SessionService) createDiscussionChat(session *entity.Session) error {
 	}
 
 	// Создаем сообщение с кнопкой для создания чата
-	message := &maxapi.SendMessageRequest{
+	message := &telegramapi.SendMessageRequest{
 		Text: "Сессия завершена! Нажмите кнопку, чтобы создать чат для обсуждения результатов.",
 		Attachments: []interface{}{
 			map[string]interface{}{
@@ -553,7 +553,7 @@ func (s *SessionService) createDiscussionChat(session *entity.Session) error {
 	}
 
 	// Отправляем сообщение создателю в личный чат
-	_, err = s.maxAPIService.SendMessageToUser(creator.MaxUserID, message)
+	_, err = s.telegramAPIService.SendMessageToUser(creator.TelegramUserID, message)
 	if err != nil {
 		return fmt.Errorf("failed to send chat creation message: %w", err)
 	}
@@ -565,9 +565,9 @@ func (s *SessionService) createDiscussionChat(session *entity.Session) error {
 // Сохраняет chat_id и chat_link в сессии и добавляет участников в чат
 func (s *SessionService) HandleChatCreated(update interface{}) error {
 	// Проверяем тип обновления
-	chatUpdate, ok := update.(*maxapi.MessageChatCreatedUpdate)
+	chatUpdate, ok := update.(*telegramapi.MessageChatCreatedUpdate)
 	if !ok {
-		return fmt.Errorf("invalid update type: expected *maxapi.MessageChatCreatedUpdate")
+		return fmt.Errorf("invalid update type: expected *telegramapi.MessageChatCreatedUpdate")
 	}
 
 	// Извлекаем session_id из start_payload
@@ -585,9 +585,9 @@ func (s *SessionService) HandleChatCreated(update interface{}) error {
 
 	// Сохраняем информацию о чате в сессии
 	chatID := chatUpdate.Chat.ChatID
-	session.MaxChatID = &chatID
+	session.TelegramChatID = &chatID
 	// Ссылка на чат может быть получена позже через API или сформирована вручную
-	// Формат ссылки зависит от Max API: например, https://max.ru/chat/{chatID}
+	// Формат ссылки зависит от Telegram API: например, https://t.me/{chatID}
 	// Пока сохраняем только chatID, ссылку можно сформировать при необходимости
 
 	// Обновляем сессию
@@ -627,22 +627,22 @@ func (s *SessionService) extractSessionIDFromPayload(payload string) string {
 	return sessionID
 }
 
-// addParticipantsToChat добавляет участников сессии в чат Max
+// addParticipantsToChat добавляет участников сессии в чат Telegram
 func (s *SessionService) addParticipantsToChat(session *entity.Session, chatID int64) error {
-	// Собираем MaxUserID всех участников
-	maxUserIDs := make([]int64, 0, len(session.Participants))
+	// Собираем TelegramUserID всех участников
+	telegramUserIDs := make([]int64, 0, len(session.Participants))
 	for _, participant := range session.Participants {
 		user, err := s.userRepo.GetByID(participant.UserID)
 		if err != nil {
 			// Пропускаем участника, если не удалось получить его данные
 			continue
 		}
-		maxUserIDs = append(maxUserIDs, user.MaxUserID)
+		telegramUserIDs = append(telegramUserIDs, user.TelegramUserID)
 	}
 
 	// Добавляем участников в чат
-	if len(maxUserIDs) > 0 {
-		if err := s.maxAPIService.AddMembers(chatID, maxUserIDs); err != nil {
+	if len(telegramUserIDs) > 0 {
+		if err := s.telegramAPIService.AddMembers(chatID, telegramUserIDs); err != nil {
 			return fmt.Errorf("failed to add participants to chat: %w", err)
 		}
 	}
@@ -667,16 +667,16 @@ func (s *SessionService) DeleteChatAfterDiscussion(sessionID string, userID stri
 		return fmt.Errorf("can only delete chat after session completion")
 	}
 
-	// Удаляем чат в Max API, если он существует
-	if session.MaxChatID != nil {
-		err := s.maxAPIService.DeleteChat(*session.MaxChatID)
+	// Удаляем чат в Telegram API, если он существует
+	if session.TelegramChatID != nil {
+		err := s.telegramAPIService.DeleteChat(*session.TelegramChatID)
 		if err != nil {
 			return fmt.Errorf("failed to delete chat: %w", err)
 		}
 
 		// Очищаем информацию о чате в сессии
-		session.MaxChatID = nil
-		session.MaxChatLink = nil
+		session.TelegramChatID = nil
+		session.TelegramChatLink = nil
 		if err := s.sessionRepo.Update(session); err != nil {
 			return fmt.Errorf("failed to update session: %w", err)
 		}
@@ -687,7 +687,7 @@ func (s *SessionService) DeleteChatAfterDiscussion(sessionID string, userID stri
 	return nil
 }
 
-// DeleteSession удаляет сессию и связанный чат Max (если есть)
+// DeleteSession удаляет сессию и связанный чат Telegram (если есть)
 func (s *SessionService) DeleteSession(sessionID string, userID string) error {
 	session, err := s.sessionRepo.GetByID(sessionID)
 	if err != nil {
@@ -699,9 +699,9 @@ func (s *SessionService) DeleteSession(sessionID string, userID string) error {
 		return fmt.Errorf("only creator can delete session")
 	}
 
-	// Удаляем чат в Max API, если он существует
-	if session.MaxChatID != nil {
-		err := s.maxAPIService.DeleteChat(*session.MaxChatID)
+	// Удаляем чат в Telegram API, если он существует
+	if session.TelegramChatID != nil {
+		err := s.telegramAPIService.DeleteChat(*session.TelegramChatID)
 		if err != nil {
 			// Логируем ошибку, но не прерываем удаление сессии
 			// Чат может быть уже удален пользователем вручную или иметь другие проблемы
@@ -836,6 +836,6 @@ func (s *SessionService) InviteUsers(sessionID string, userID string, userIDs []
 		return 0, "", fmt.Errorf("only creator can invite users")
 	}
 
-	// В реальности отправляем приглашения через Max API
+	// В реальности отправляем приглашения через Telegram API
 	return len(userIDs), session.InviteLink, nil
 }

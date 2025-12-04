@@ -24,25 +24,25 @@ const (
 )
 
 type Session struct {
-	ID             string         `gorm:"type:varchar(36);primaryKey" json:"id"`
-	Mode           SessionMode    `gorm:"type:session_mode;not null" json:"mode"`
-	Status         SessionStatus  `gorm:"type:session_status;not null;default:'pending'" json:"status"`
-	FocusDuration  int            `gorm:"not null" json:"focusDuration"` // в минутах
-	BreakDuration  int            `gorm:"not null" json:"breakDuration"` // в минутах
-	GroupName      *string        `gorm:"type:varchar(255)" json:"groupName"`
-	IsPrivate      bool           `gorm:"not null;default:false" json:"isPrivate"`
-	CreatorID      string         `gorm:"type:varchar(36);not null;index:idx_creator_id" json:"creatorId"`
-	InviteLink     string         `gorm:"type:varchar(50);uniqueIndex:idx_invite_link;not null" json:"inviteLink"`
-	MaxChatID      *int64         `gorm:"index:idx_max_chat_id" json:"maxChatId,omitempty"` // ID чата в Max API
-	MaxChatLink    *string        `gorm:"type:varchar(500)" json:"maxChatLink,omitempty"`   // Ссылка на чат в Max
-	StartedAt      *time.Time     `json:"startedAt"`
-	CompletedAt    *time.Time     `json:"completedAt"`
-	PausedAt       *time.Time     `json:"pausedAt"`
-	TotalPauseTime int64          `gorm:"not null;default:0" json:"totalPauseTime"` // в миллисекундах
-	CurrentCycle   int            `gorm:"not null;default:0" json:"currentCycle"`
-	CreatedAt      time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP;index:idx_created_at" json:"createdAt"`
-	UpdatedAt      time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"updatedAt"`
-	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+	ID               string         `gorm:"type:varchar(36);primaryKey" json:"id"`
+	Mode             SessionMode    `gorm:"type:session_mode;not null" json:"mode"`
+	Status           SessionStatus  `gorm:"type:session_status;not null;default:'pending'" json:"status"`
+	FocusDuration    int            `gorm:"not null" json:"focusDuration"` // в минутах
+	BreakDuration    int            `gorm:"not null" json:"breakDuration"` // в минутах
+	GroupName        *string        `gorm:"type:varchar(255)" json:"groupName"`
+	IsPrivate        bool           `gorm:"not null;default:false" json:"isPrivate"`
+	CreatorID        string         `gorm:"type:varchar(36);not null;index:idx_creator_id" json:"creatorId"`
+	InviteLink       string         `gorm:"type:varchar(50);uniqueIndex:idx_invite_link;not null" json:"inviteLink"`
+	TelegramChatID   *int64         `gorm:"index:idx_telegram_chat_id" json:"telegramChatId,omitempty"` // ID чата в Telegram API
+	TelegramChatLink *string        `gorm:"type:varchar(500)" json:"telegramChatLink,omitempty"`        // Ссылка на чат в Telegram
+	StartedAt        *time.Time     `json:"startedAt"`
+	CompletedAt      *time.Time     `json:"completedAt"`
+	PausedAt         *time.Time     `json:"pausedAt"`
+	TotalPauseTime   int64          `gorm:"not null;default:0" json:"totalPauseTime"` // в миллисекундах
+	CurrentCycle     int            `gorm:"not null;default:0" json:"currentCycle"`
+	CreatedAt        time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP;index:idx_created_at" json:"createdAt"`
+	UpdatedAt        time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"updatedAt"`
+	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
 	Tasks        []Task        `gorm:"foreignKey:SessionID;constraint:OnDelete:CASCADE" json:"tasks"`
@@ -113,10 +113,10 @@ type ParticipantReport struct {
 
 // ParticipantProgress represents real-time progress of a participant
 type ParticipantProgress struct {
-	UserID         string  `json:"userId"`
-	UserName       string  `json:"userName"`
-	AvatarURL      *string `json:"avatarUrl"`
-	TasksCompleted int     `json:"tasksCompleted"`
-	TasksTotal     int     `json:"tasksTotal"`
+	UserID          string  `json:"userId"`
+	UserName        string  `json:"userName"`
+	AvatarURL       *string `json:"avatarUrl"`
+	TasksCompleted  int     `json:"tasksCompleted"`
+	TasksTotal      int     `json:"tasksTotal"`
 	ProgressPercent float64 `json:"progressPercent"` // 0-100
 }

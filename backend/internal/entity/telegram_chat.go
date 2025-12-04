@@ -1,7 +1,7 @@
 package entity
 
-// MaxChatInfo информация о чате в Max API
-type MaxChatInfo struct {
+// TelegramChatInfo информация о чате в Telegram API
+type TelegramChatInfo struct {
 	ChatID            int64  `json:"chatId"`
 	ChatLink          string `json:"chatLink"`
 	Title             string `json:"title"`

@@ -9,17 +9,17 @@ import (
 )
 
 type UserRepository struct {
-	users map[string]*entity.User
-	stats map[string]*entity.UserStats
-	maxID map[int64]string // маппинг maxUserID -> userID
-	mu    sync.RWMutex
+	users      map[string]*entity.User
+	stats      map[string]*entity.UserStats
+	telegramID map[int64]string // маппинг telegramUserID -> userID
+	mu         sync.RWMutex
 }
 
 func NewUserRepository() interfaces.UserRepository {
 	return &UserRepository{
-		users: make(map[string]*entity.User),
-		stats: make(map[string]*entity.UserStats),
-		maxID: make(map[int64]string),
+		users:      make(map[string]*entity.User),
+		stats:      make(map[string]*entity.UserStats),
+		telegramID: make(map[int64]string),
 	}
 }
 
@@ -32,7 +32,7 @@ func (r *UserRepository) Create(user *entity.User) error {
 	}
 
 	r.users[user.ID] = user
-	r.maxID[user.MaxUserID] = user.ID
+	r.telegramID[user.TelegramUserID] = user.ID
 	r.stats[user.ID] = &entity.UserStats{}
 
 	return nil
@@ -50,13 +50,13 @@ func (r *UserRepository) GetByID(id string) (*entity.User, error) {
 	return user, nil
 }
 
-func (r *UserRepository) GetByMaxUserID(maxUserID int64) (*entity.User, error) {
+func (r *UserRepository) GetByTelegramUserID(telegramUserID int64) (*entity.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	userID, exists := r.maxID[maxUserID]
+	userID, exists := r.telegramID[telegramUserID]
 	if !exists {
-		return nil, fmt.Errorf("user with maxUserID %d not found", maxUserID)
+		return nil, fmt.Errorf("user with telegramUserID %d not found", telegramUserID)
 	}
 
 	user, exists := r.users[userID]

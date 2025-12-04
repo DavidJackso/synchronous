@@ -62,8 +62,8 @@ func (a *App) Run() error {
 	messageRepo := gormRepo.NewMessageRepository(db)
 	leaderboardRepo := gormRepo.NewLeaderboardRepository(db)
 
-	// Инициализация Max API клиента и сервиса
-	maxAPIService := service.NewMaxAPIService(cfg.MaxAPI.BaseURL, cfg.MaxAPI.AccessToken)
+	// Инициализация Telegram API клиента и сервиса
+	telegramAPIService := service.NewTelegramAPIService(cfg.TelegramAPI.BotToken)
 
 	// Инициализация JWT менеджера
 	tokenManager := jwt.NewTokenManager(
@@ -73,7 +73,7 @@ func (a *App) Run() error {
 	)
 
 	// Инициализация сервисов
-	botToken := cfg.MaxAPI.BotToken
+	botToken := cfg.TelegramAPI.BotToken
 	if botToken == "" {
 		log.Printf("[Config] ⚠️ WARNING: BOT_TOKEN is not configured! InitData validation will fail.")
 	} else {
@@ -81,8 +81,8 @@ func (a *App) Run() error {
 	}
 	authService := service.NewAuthService(userRepo, tokenManager, botToken)
 	userService := service.NewUserService(userRepo)
-	sessionService := service.NewSessionService(sessionRepo, taskRepo, userRepo, maxAPIService)
-	messageService := service.NewMessageService(sessionService, maxAPIService, userRepo, messageRepo)
+	sessionService := service.NewSessionService(sessionRepo, taskRepo, userRepo, telegramAPIService)
+	messageService := service.NewMessageService(sessionService, telegramAPIService, userRepo, messageRepo)
 	leaderboardService := service.NewLeaderboardService(leaderboardRepo, sessionRepo, userRepo)
 
 	// Start session cleanup service (cleanup sessions older than 1 hour every 15 minutes)
@@ -96,7 +96,7 @@ func (a *App) Run() error {
 	userHandler := v1.NewUserHandler(baseHandler, userService)
 	wsHandler := v1.NewWebSocketHandler(baseHandler)
 	sessionHandler := v1.NewSessionHandler(baseHandler, sessionService, messageService, leaderboardService, wsHandler)
-	webhookHandler := v1.NewWebhookHandler(baseHandler, sessionService, maxAPIService)
+	webhookHandler := v1.NewWebhookHandler(baseHandler, sessionService, telegramAPIService)
 
 	// Инициализация роутера на gin
 	appRouter := router.New()

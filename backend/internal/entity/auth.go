@@ -8,7 +8,7 @@ type AuthTokens struct {
 	ExpiresAt    time.Time `json:"expiresAt"`
 }
 
-type MaxAuthRequest struct {
+type TelegramAuthRequest struct {
 	InitData string `json:"initData"`
 	DeviceID string `json:"deviceId"`
 }

@@ -7,13 +7,13 @@ import (
 )
 
 type User struct {
-	ID        string         `gorm:"type:varchar(36);primaryKey" json:"id"`
-	Name      string         `gorm:"type:varchar(255);not null" json:"name"`
-	AvatarURL *string        `gorm:"type:text" json:"avatarUrl"`
-	MaxUserID int64          `gorm:"uniqueIndex:idx_max_user_id;not null" json:"maxUserId"`
-	CreatedAt time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"createdAt"`
-	UpdatedAt time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID             string         `gorm:"type:varchar(36);primaryKey" json:"id"`
+	Name           string         `gorm:"type:varchar(255);not null" json:"name"`
+	AvatarURL      *string        `gorm:"type:text" json:"avatarUrl"`
+	TelegramUserID int64          `gorm:"uniqueIndex:idx_telegram_user_id;not null" json:"telegramUserId"`
+	CreatedAt      time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"createdAt"`
+	UpdatedAt      time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"updatedAt"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
 	Stats *UserStats `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"stats,omitempty"`

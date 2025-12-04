@@ -7,13 +7,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rnegic/synchronous/internal/interfaces"
-	"github.com/rnegic/synchronous/pkg/maxapi"
+	"github.com/rnegic/synchronous/pkg/telegramapi"
 )
 
 type WebhookHandler struct {
 	*BaseHandler
-	sessionService interfaces.SessionService
-	maxAPIService  interfaces.MaxAPIService
+	sessionService     interfaces.SessionService
+	telegramAPIService interfaces.TelegramAPIService
 }
 
 const welcomeMessage = `Привет! Это бот Синхрон - я помогаю проводить фокус-сессии и синхронно работать с командой.
@@ -24,22 +24,22 @@ const welcomeMessage = `Привет! Это бот Синхрон - я помо
 - приглашать коллег по ссылке
 - сохранять отчёты по каждой сессии и делиться ими
 
-Чтобы стартовать, просто открой Mini App Синхрона и создай первую сессию - я подскажу каждый шаг 🚀`
+Чтобы стартовать, просто открой веб-приложение Синхрона и создай первую сессию - я подскажу каждый шаг 🚀`
 
-func NewWebhookHandler(baseHandler *BaseHandler, sessionService interfaces.SessionService, maxAPIService interfaces.MaxAPIService) *WebhookHandler {
+func NewWebhookHandler(baseHandler *BaseHandler, sessionService interfaces.SessionService, telegramAPIService interfaces.TelegramAPIService) *WebhookHandler {
 	return &WebhookHandler{
-		BaseHandler:    baseHandler,
-		sessionService: sessionService,
-		maxAPIService:  maxAPIService,
+		BaseHandler:        baseHandler,
+		sessionService:     sessionService,
+		telegramAPIService: telegramAPIService,
 	}
 }
 
 func (h *WebhookHandler) RegisterRoutes(router *gin.RouterGroup) {
 	// Webhook endpoint (публичный, без аутентификации)
-	router.POST("/webhook/max", h.handleWebhook)
+	router.POST("/webhook/telegram", h.handleWebhook)
 }
 
-// handleWebhook обрабатывает webhook от Max API
+// handleWebhook обрабатывает webhook от Telegram Bot API
 func (h *WebhookHandler) handleWebhook(c *gin.Context) {
 	// Читаем тело запроса
 	body, err := c.GetRawData()
@@ -50,7 +50,7 @@ func (h *WebhookHandler) handleWebhook(c *gin.Context) {
 	}
 
 	// Парсим обновление
-	update, err := maxapi.ParseUpdate(body)
+	update, err := telegramapi.ParseUpdate(body)
 	if err != nil {
 		log.Printf("[Webhook] Failed to parse update: %v", err)
 		h.ErrorResponse(c, http.StatusBadRequest, "failed to parse update")
@@ -59,7 +59,7 @@ func (h *WebhookHandler) handleWebhook(c *gin.Context) {
 
 	// Обрабатываем обновление в зависимости от типа
 	switch u := update.(type) {
-	case *maxapi.MessageCreatedUpdate:
+	case *telegramapi.MessageCreatedUpdate:
 		log.Printf("[Webhook] Received message from user=%d chat=%d text=%q",
 			u.Message.Sender.UserID, u.Message.Recipient.ChatID, u.Message.Body.Text)
 
@@ -71,7 +71,7 @@ func (h *WebhookHandler) handleWebhook(c *gin.Context) {
 
 		h.SuccessResponse(c, http.StatusOK, gin.H{"status": "processed"})
 
-	case *maxapi.MessageChatCreatedUpdate:
+	case *telegramapi.MessageChatCreatedUpdate:
 		// Обрабатываем создание чата
 		log.Printf("[Webhook] Received chat created update: chatID=%d, startPayload=%s",
 			u.Chat.ChatID, u.StartPayload)
@@ -92,8 +92,8 @@ func (h *WebhookHandler) handleWebhook(c *gin.Context) {
 	}
 }
 
-func (h *WebhookHandler) handleMessageCreated(update *maxapi.MessageCreatedUpdate) error {
-	if update == nil || h.maxAPIService == nil {
+func (h *WebhookHandler) handleMessageCreated(update *telegramapi.MessageCreatedUpdate) error {
+	if update == nil || h.telegramAPIService == nil {
 		return nil
 	}
 
@@ -111,7 +111,7 @@ func (h *WebhookHandler) handleMessageCreated(update *maxapi.MessageCreatedUpdat
 		return nil
 	}
 
-	_, err := h.maxAPIService.SendMessageToUser(update.Message.Sender.UserID, &maxapi.SendMessageRequest{
+	_, err := h.telegramAPIService.SendMessageToUser(update.Message.Sender.UserID, &telegramapi.SendMessageRequest{
 		Text: welcomeMessage,
 	})
 	return err

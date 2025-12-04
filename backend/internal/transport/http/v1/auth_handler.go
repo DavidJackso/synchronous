@@ -34,7 +34,7 @@ func (h *AuthHandler) RegisterRoutes(router *gin.RouterGroup) {
 }
 
 func (h *AuthHandler) login(c *gin.Context) {
-	var req entity.MaxAuthRequest
+	var req entity.TelegramAuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.ErrorResponse(c, http.StatusBadRequest, "invalid request body")
 		return

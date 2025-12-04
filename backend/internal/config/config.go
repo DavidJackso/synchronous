@@ -20,10 +20,8 @@ type Config struct {
 		Password string
 		DBName   string
 	}
-	MaxAPI struct {
-		BaseURL     string
-		AccessToken string
-		BotToken    string
+	TelegramAPI struct {
+		BotToken string
 	}
 	App struct {
 		JWTSecret      string
@@ -50,7 +48,7 @@ func (c *Config) Load(filePath string) error {
 	// Читаем переменные окружения напрямую (для Docker)
 	viper.BindEnv("DB_DSN")
 	viper.BindEnv("DATABASE.DSN", "DB_DSN")
-	viper.BindEnv("MAXAPI.BOT_TOKEN", "BOT_TOKEN")
+	viper.BindEnv("TELEGRAM.BOT_TOKEN", "BOT_TOKEN")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -85,15 +83,12 @@ func (c *Config) Load(filePath string) error {
 		c.Database.DBName = viper.GetString("DATABASE.DB_NAME")
 	}
 
-	if viper.IsSet("MAXAPI.BASE_URL") {
-		c.MaxAPI.BaseURL = viper.GetString("MAXAPI.BASE_URL")
-	}
-	if viper.IsSet("MAXAPI.ACCESS_TOKEN") {
-		c.MaxAPI.AccessToken = viper.GetString("MAXAPI.ACCESS_TOKEN")
+	if viper.IsSet("TELEGRAM.BOT_TOKEN") {
+		c.TelegramAPI.BotToken = viper.GetString("TELEGRAM.BOT_TOKEN")
 	}
 	// Читаем BOT_TOKEN из конфига (будет перезаписан переменной окружения, если она есть)
-	if botToken := viper.GetString("MAXAPI.BOT_TOKEN"); botToken != "" {
-		c.MaxAPI.BotToken = botToken
+	if botToken := viper.GetString("TELEGRAM.BOT_TOKEN"); botToken != "" {
+		c.TelegramAPI.BotToken = botToken
 	}
 	if viper.IsSet("APP.JWT_SECRET") {
 		c.App.JWTSecret = viper.GetString("APP.JWT_SECRET")
@@ -118,7 +113,7 @@ func (c *Config) Load(filePath string) error {
 
 	// Проверяем переменную окружения BOT_TOKEN (приоритет над config.toml)
 	if envBotToken := viper.GetString("BOT_TOKEN"); envBotToken != "" {
-		c.MaxAPI.BotToken = envBotToken
+		c.TelegramAPI.BotToken = envBotToken
 	}
 
 	// Строим DSN из отдельных параметров, если DSN не указан

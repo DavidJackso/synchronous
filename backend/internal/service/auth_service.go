@@ -61,7 +61,7 @@ func (s *AuthService) Login(initData, deviceID string) (*entity.AuthTokens, *ent
 		return nil, nil, fmt.Errorf("init data missing user payload")
 	}
 
-	var initUser maxInitDataUser
+	var initUser telegramInitDataUser
 	if err := json.Unmarshal([]byte(userJSON), &initUser); err != nil {
 		return nil, nil, fmt.Errorf("failed to parse user payload: %w", err)
 	}
@@ -84,7 +84,7 @@ func (s *AuthService) Login(initData, deviceID string) (*entity.AuthTokens, *ent
 		avatarURL = &avatar
 	}
 
-	user, err := s.userRepo.GetByMaxUserID(initUser.ID)
+	user, err := s.userRepo.GetByTelegramUserID(initUser.ID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -93,12 +93,12 @@ func (s *AuthService) Login(initData, deviceID string) (*entity.AuthTokens, *ent
 
 	if user == nil {
 		user = &entity.User{
-			ID:        uuid.New().String(),
-			Name:      displayName,
-			AvatarURL: avatarURL,
-			MaxUserID: initUser.ID,
-			CreatedAt: now,
-			UpdatedAt: now,
+			ID:             uuid.New().String(),
+			Name:           displayName,
+			AvatarURL:      avatarURL,
+			TelegramUserID: initUser.ID,
+			CreatedAt:      now,
+			UpdatedAt:      now,
 		}
 
 		if err := s.userRepo.Create(user); err != nil {
@@ -147,7 +147,7 @@ func (s *AuthService) Login(initData, deviceID string) (*entity.AuthTokens, *ent
 	return tokens, user, nil
 }
 
-type maxInitDataUser struct {
+type telegramInitDataUser struct {
 	ID        int64  `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
