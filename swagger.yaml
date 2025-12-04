@@ -1,8 +1,8 @@
 openapi: 3.0.0
 info:
-  title: Max Bot API - Focus Sessions Application
+  title: Telegram Bot API - Focus Sessions Application
   description: |
-    API для мини-приложения синхронных сессий фокуса с интеграцией Max API.
+    API для мини-приложения синхронных сессий фокуса с интеграцией Telegram Bot API.
     
     ## Аутентификация
     API использует HTTP-only cookies для аутентификации (защита от XSS атак).
@@ -12,7 +12,7 @@ info:
     ## Особенности
     - Solo и Group сессии фокуса
     - Real-time обновления через WebSocket
-    - Интеграция с Max Messenger API
+    - Интеграция с Telegram Bot API
     - Система лидерборда
     - Управление задачами
   version: 1.0.0
@@ -111,11 +111,11 @@ components:
     AuthRequest:
       type: object
       properties:
-        maxToken:
+        initData:
           type: string
           description: |
-            Пользовательский access_token, полученный от Max (mini-app bridge или OAuth flow).
-            Именно этот токен фронтенд передаёт на backend для авторизации.
+            Данные инициализации от Telegram Mini App (initData).
+            Именно эти данные фронтенд передаёт на backend для авторизации.
           example: "001.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         deviceId:
           type: string
@@ -124,7 +124,7 @@ components:
             Используется для трекинга сессий и отзывов refresh токенов.
           example: "device-f5e3b94a-5e1b-4a16-9a3f-0db8741c4f19"
       required:
-        - maxToken
+        - initData
         - deviceId
 
     AuthResponse:
@@ -428,10 +428,10 @@ paths:
     post:
       tags:
         - auth
-      summary: Вход через Max token
+      summary: Вход через Telegram initData
       description: |
-        Авторизация пользователя через Max Messenger token.
-        `maxToken` — это пользовательский access_token, который фронтенд получает от Max (mini-app bridge или OAuth flow).
+        Авторизация пользователя через Telegram Mini App initData.
+        `initData` — это данные инициализации, которые фронтенд получает от Telegram Mini App.
         Токены устанавливаются в HTTP-only cookies для защиты от XSS атак.
       requestBody:
         required: true
@@ -537,7 +537,7 @@ paths:
       tags:
         - users
       summary: Получить список контактов
-      description: Возвращает список контактов из Max Messenger для приглашений
+      description: Возвращает список контактов из Telegram для приглашений
       security:
         - BearerAuth: []
       responses:
@@ -1004,15 +1004,15 @@ paths:
     get:
       tags:
         - messages
-      summary: Получить сообщения из Max чата
+      summary: Получить сообщения из Telegram чата
       description: |
-        Возвращает сообщения из чата Max API для данной сессии.
+        Возвращает сообщения из чата Telegram API для данной сессии.
         
-        **Важно:** Сообщения получаются напрямую из Max API, не из нашей БД.
-        Сообщения хранятся в Max, наша БД их не хранит.
+        **Важно:** Сообщения получаются напрямую из Telegram API, не из нашей БД.
+        Сообщения хранятся в Telegram, наша БД их не хранит.
         
         Этот endpoint можно использовать для отображения сообщений в кастомном UI,
-        но рекомендуется использовать Max SDK/Widget для отображения чата.
+        но рекомендуется использовать Telegram SDK/Widget для отображения чата.
       security:
         - BearerAuth: []
       parameters:
@@ -1036,7 +1036,7 @@ paths:
             maximum: 100
       responses:
         '200':
-          description: Список сообщений из Max API
+          description: Список сообщений из Telegram API
           content:
             application/json:
               schema:
@@ -1062,12 +1062,12 @@ paths:
     post:
       tags:
         - messages
-      summary: Отправить сообщение в Max чат
+      summary: Отправить сообщение в Telegram чат
       description: |
-        Отправляет сообщение в чат Max API для данной сессии.
+        Отправляет сообщение в чат Telegram API для данной сессии.
         
-        **Важно:** Сообщение отправляется через Max API, не сохраняется в нашу БД.
-        Сообщения хранятся в Max.
+        **Важно:** Сообщение отправляется через Telegram API, не сохраняется в нашу БД.
+        Сообщения хранятся в Telegram.
       security:
         - BearerAuth: []
       parameters:
@@ -1085,7 +1085,7 @@ paths:
               $ref: '#/components/schemas/SendMessageRequest'
       responses:
         '200':
-          description: Отправленное сообщение из Max API
+          description: Отправленное сообщение из Telegram API
           content:
             application/json:
               schema:
@@ -1110,10 +1110,10 @@ paths:
     get:
       tags:
         - sessions
-      summary: Получить информацию о Max чате
+      summary: Получить информацию о Telegram чате
       description: |
-        Возвращает информацию о чате Max для данной сессии.
-        Полезно для получения ссылки на чат или для интеграции с Max SDK.
+        Возвращает информацию о чате Telegram для данной сессии.
+        Полезно для получения ссылки на чат или для интеграции с Telegram SDK.
       security:
         - BearerAuth: []
       parameters:
@@ -1134,10 +1134,10 @@ paths:
                   chatId:
                     type: integer
                     format: int64
-                    description: ID чата в Max API
+                    description: ID чата в Telegram API
                   chatLink:
                     type: string
-                    description: Ссылка на чат в Max
+                    description: Ссылка на чат в Telegram
                   title:
                     type: string
                     description: Название чата

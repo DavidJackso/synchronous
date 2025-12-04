@@ -30,8 +30,8 @@ services:
       - .env
     environment:
       - DB_DSN=postgres://${DB_USER:-synchronous_user}:${DB_PASSWORD:-change_me}@postgres:5432/${DB_NAME:-synchronous_db}?sslmode=disable
-      - MAXAPI_BASE_URL=${MAXAPI_BASE_URL:-https://platform-api.max.ru}
-      - MAXAPI_ACCESS_TOKEN=${MAXAPI_ACCESS_TOKEN}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - BOT_TOKEN=${BOT_TOKEN}
       - JWT_SECRET=${JWT_SECRET}
       - GIN_MODE=release
     volumes:

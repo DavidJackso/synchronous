@@ -24,8 +24,8 @@
    DB_USER=synchronous_user
    DB_PASSWORD=change_me
    DB_NAME=synchronous_db
-   MAXAPI_BASE_URL=https://platform-api.max.ru
-   MAXAPI_ACCESS_TOKEN=<your_max_token>
+   TELEGRAM_BOT_TOKEN=<your_telegram_bot_token>
+   BOT_TOKEN=<your_telegram_bot_token>
    JWT_SECRET=<your_jwt_secret>
    ```
 
@@ -113,6 +113,6 @@ curl -H "Authorization: Bearer <TOKEN>" \
 ## Полезные ссылки
 
 - Swagger: `http://localhost:8081`
-- MAX API client: `github.com/max-messenger/max-bot-api-client-go`
+- Telegram Bot API client: `github.com/go-telegram-bot-api/telegram-bot-api/v5`
 - Vite документация: https://vitejs.dev/
 
