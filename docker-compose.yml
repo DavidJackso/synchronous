@@ -26,6 +26,8 @@ services:
     restart: unless-stopped
     networks:
       - synchronous_network
+      # Connect to default bridge network to access shared-postgres by container name
+      - default
     labels:
       - "com.synchronous.service=backend"
       - "com.synchronous.description=Backend API service"
@@ -82,4 +84,8 @@ networks:
     driver: bridge
     labels:
       - "com.synchronous.network=synchronous_network"
+  # Default bridge network to access shared-postgres container
+  default:
+    external: true
+    name: bridge
 
