@@ -96,7 +96,7 @@ func (a *App) Run() error {
 	userHandler := v1.NewUserHandler(baseHandler, userService)
 	wsHandler := v1.NewWebSocketHandler(baseHandler)
 	sessionHandler := v1.NewSessionHandler(baseHandler, sessionService, messageService, leaderboardService, wsHandler)
-	webhookHandler := v1.NewWebhookHandler(baseHandler, sessionService, telegramAPIService)
+	webhookHandler := v1.NewWebhookHandler(baseHandler, sessionService, telegramAPIService, authService)
 
 	// Инициализация роутера на gin
 	appRouter := router.New()

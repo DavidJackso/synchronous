@@ -291,6 +291,10 @@ func (s *AuthService) Logout(userID string) error {
 	return nil
 }
 
+func (s *AuthService) GetUserByTelegramID(telegramUserID int64) (*entity.User, error) {
+	return s.userRepo.GetByTelegramUserID(telegramUserID)
+}
+
 func equalPointers(a, b *string) bool {
 	if a == nil && b == nil {
 		return true

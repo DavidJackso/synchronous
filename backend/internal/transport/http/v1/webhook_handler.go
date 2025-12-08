@@ -14,23 +14,41 @@ type WebhookHandler struct {
 	*BaseHandler
 	sessionService     interfaces.SessionService
 	telegramAPIService interfaces.TelegramAPIService
+	authService        interfaces.AuthService
 }
 
-const welcomeMessage = `Привет! Это бот Синхрон - я помогаю проводить фокус-сессии и синхронно работать с командой.
+const welcomeMessage = `👋 Привет! Это бот Синхрон - твой помощник для фокус-сессий и синхронной работы с командой.
 
-Вот, что я умею:
-- запускать одиночные и групповые сессии по Помодоро с гибкими циклами
-- собирать задачи и отслеживать их выполнение в реальном времени
-- приглашать коллег по ссылке
-- сохранять отчёты по каждой сессии и делиться ими
+🚀 Что я умею:
+• Запускать одиночные и групповые сессии по Помодоро с гибкими циклами
+• Собирать задачи и отслеживать их выполнение в реальном времени
+• Приглашать коллег по ссылке
+• Сохранять отчёты по каждой сессии и делиться ими
 
-Чтобы стартовать, просто открой веб-приложение Синхрона и создай первую сессию - я подскажу каждый шаг 🚀`
+📱 Чтобы начать работу:
+1. Открой веб-приложение Синхрона
+2. Создай свою первую сессию
+3. Я подскажу каждый шаг!
 
-func NewWebhookHandler(baseHandler *BaseHandler, sessionService interfaces.SessionService, telegramAPIService interfaces.TelegramAPIService) *WebhookHandler {
+💡 Команды:
+/start - показать это приветствие
+/restart - сбросить авторизацию и начать заново`
+
+const restartMessage = `🔄 Авторизация сброшена!
+
+Теперь тебе нужно:
+1. Открой веб-приложение Синхрона
+2. Авторизуйся заново через Telegram
+3. Начни новую сессию!
+
+Если возникли проблемы, напиши /start для получения помощи.`
+
+func NewWebhookHandler(baseHandler *BaseHandler, sessionService interfaces.SessionService, telegramAPIService interfaces.TelegramAPIService, authService interfaces.AuthService) *WebhookHandler {
 	return &WebhookHandler{
 		BaseHandler:        baseHandler,
 		sessionService:     sessionService,
 		telegramAPIService: telegramAPIService,
+		authService:        authService,
 	}
 }
 
@@ -103,16 +121,56 @@ func (h *WebhookHandler) handleMessageCreated(update *telegramapi.MessageCreated
 	}
 
 	lowered := strings.ToLower(text)
-	if lowered != "/start" && lowered != "start" && lowered != "привет" {
+	telegramUserID := update.Message.Sender.UserID
+
+	if telegramUserID == 0 {
 		return nil
 	}
 
-	if update.Message.Sender.UserID == 0 {
-		return nil
+	// Обработка команды /start
+	if lowered == "/start" || lowered == "start" || lowered == "привет" {
+		_, err := h.telegramAPIService.SendMessageToUser(telegramUserID, &telegramapi.SendMessageRequest{
+			Text: welcomeMessage,
+		})
+		return err
 	}
 
-	_, err := h.telegramAPIService.SendMessageToUser(update.Message.Sender.UserID, &telegramapi.SendMessageRequest{
-		Text: welcomeMessage,
+	// Обработка команды /restart
+	if lowered == "/restart" || lowered == "restart" {
+		return h.handleRestart(telegramUserID)
+	}
+
+	return nil
+}
+
+// handleRestart обрабатывает команду /restart - сбрасывает авторизацию пользователя
+func (h *WebhookHandler) handleRestart(telegramUserID int64) error {
+	log.Printf("[Webhook] 🔄 Processing /restart command for user=%d", telegramUserID)
+
+	// Получаем пользователя по TelegramUserID
+	// Используем userRepo через authService
+	user, err := h.authService.GetUserByTelegramID(telegramUserID)
+	if err != nil {
+		log.Printf("[Webhook] ⚠️ User not found for telegramUserID=%d: %v", telegramUserID, err)
+		// Пользователь не найден - все равно отправляем сообщение
+		_, sendErr := h.telegramAPIService.SendMessageToUser(telegramUserID, &telegramapi.SendMessageRequest{
+			Text: restartMessage,
+		})
+		return sendErr
+	}
+
+	// Выполняем logout для пользователя
+	if user != nil && user.ID != "" {
+		if err := h.authService.Logout(user.ID); err != nil {
+			log.Printf("[Webhook] ⚠️ Failed to logout user=%s: %v", user.ID, err)
+		} else {
+			log.Printf("[Webhook] ✅ Logout successful for user=%s (telegramUserID=%d)", user.ID, telegramUserID)
+		}
+	}
+
+	// Отправляем сообщение пользователю
+	_, err = h.telegramAPIService.SendMessageToUser(telegramUserID, &telegramapi.SendMessageRequest{
+		Text: restartMessage,
 	})
 	return err
 }
