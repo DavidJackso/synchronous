@@ -1,32 +1,4 @@
 services:
-  # PostgreSQL database
-  # Note: In production, postgres and nginx are deployed manually
-  postgres:
-    image: postgres:16-alpine
-    container_name: synchronous_postgres
-    environment:
-      POSTGRES_USER: ${DB_USER:-synchronous_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me}
-      POSTGRES_DB: ${DB_NAME:-synchronous_db}
-      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-synchronous_user}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    restart: unless-stopped
-    networks:
-      - synchronous_network
-    labels:
-      - "com.synchronous.service=postgres"
-      - "com.synchronous.description=PostgreSQL database"
-
-  # Backend API service
   backend:
     build:
       context: ./backend
@@ -34,13 +6,10 @@ services:
       args:
         - BUILDKIT_INLINE_CACHE=1
     container_name: synchronous_backend
-    depends_on:
-      postgres:
-        condition: service_healthy
     env_file:
       - .env
     environment:
-      - DB_DSN=postgres://${DB_USER:-synchronous_user}:${DB_PASSWORD:-change_me}@postgres:5432/${DB_NAME:-synchronous_db}?sslmode=disable
+      - DB_DSN=${DB_DSN:-postgres://${DB_USER:-synchronous_user}:${DB_PASSWORD:-change_me}@localhost:5432/${DB_NAME:-synchronous_db}?sslmode=disable}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - BOT_TOKEN=${BOT_TOKEN}
       - JWT_SECRET=${JWT_SECRET}
@@ -108,44 +77,6 @@ services:
     labels:
       - "com.synchronous.service=swagger-ui"
       - "com.synchronous.description=API documentation"
-
-  # Nginx reverse proxy
-  # Note: In production, nginx is deployed manually on the host
-  nginx:
-    image: nginx:alpine
-    container_name: synchronous_nginx
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
-      swagger-ui:
-        condition: service_healthy
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/certbot:/var/www/certbot
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-    ports:
-      - "80:80"
-      - "443:443"
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    restart: unless-stopped
-    networks:
-      - synchronous_network
-    labels:
-      - "com.synchronous.service=nginx"
-      - "com.synchronous.description=Reverse proxy and load balancer"
-
-volumes:
-  postgres_data:
-    driver: local
-    labels:
-      - "com.synchronous.volume=postgres_data"
 
 networks:
   synchronous_network:
