@@ -16,14 +16,14 @@ func New() *gin.Engine {
 	// CORS configuration for HTTP-only cookies
 	config := cors.Config{
 		AllowOrigins: []string{
-			"http://localhost:3000",      // Local development
-			"http://focus-sync.ru",       // Production HTTP
-			"https://focus-sync.ru",      // Production HTTPS
-			"http://tg.focus-sync.ru",    // Subdomain HTTP
-			"https://tg.focus-sync.ru",   // Subdomain HTTPS
-			"https://st.max.ru",          // MAX CDN (loads max-web-app.js)
-			"https://webappcdn.max.ru",   // MAX WebApp CDN
-			"https://max.ru",             // MAX main domain
+			"http://localhost:3000",    // Local development
+			"http://focus-sync.ru",     // Production HTTP
+			"https://focus-sync.ru",    // Production HTTPS
+			"http://tg.focus-sync.ru",  // Subdomain HTTP
+			"https://tg.focus-sync.ru", // Subdomain HTTPS
+			"https://st.max.ru",        // MAX CDN (loads max-web-app.js)
+			"https://webappcdn.max.ru", // MAX WebApp CDN
+			"https://max.ru",           // MAX main domain
 		},
 		AllowMethods: []string{
 			"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",

@@ -25,7 +25,7 @@ declare module 'axios' {
 // Constants
 // ============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://focus-sync.ru/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://tg.focus-sync.ru/api/v1';
 const REQUEST_TIMEOUT = 30000; // 30 seconds
 
 // ============================================================================

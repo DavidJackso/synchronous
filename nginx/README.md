@@ -90,11 +90,20 @@ sudo cp /opt/synchronous/nginx/conf.d/tg.focus-sync.conf /etc/nginx/sites-availa
 sudo rm -f /etc/nginx/sites-enabled/tg.focus-sync.conf
 sudo ln -s /etc/nginx/sites-available/tg.focus-sync.conf /etc/nginx/sites-enabled/
 
-# 3. Проверьте и перезагрузите
-sudo nginx -t && sudo systemctl reload nginx
+# 3. Проверьте синтаксис
+sudo nginx -t
 
-# 4. Проверьте работу
-curl -I https://tg.focus-sync.ru/api/v1/health
+# 4. Перезагрузите nginx (reload может не подхватить изменения, используйте restart)
+sudo systemctl restart nginx
+
+# 5. Проверьте, что nginx запущен
+sudo systemctl status nginx
+
+# 6. Проверьте работу
+curl -v https://tg.focus-sync.ru/api/v1/health
+
+# 7. Если все еще 404, проверьте логи
+sudo tail -50 /var/log/nginx/tg.focus-sync-error.log
 ```
 
 ## Устранение неполадок
@@ -142,8 +151,12 @@ curl -I https://tg.focus-sync.ru/api/v1/health
    docker ps -a | grep synchronous
    ```
 
-2. **Запустите контейнеры, если они не запущены:**
+2. **Убедитесь, что все контейнеры запущены и здоровы:**
    ```bash
+   # Проверьте статус
+   docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep synchronous
+   
+   # Если контейнеры не запущены или unhealthy, перезапустите их
    cd /opt/synchronous
    docker compose up -d backend frontend swagger-ui
    ```
@@ -160,10 +173,35 @@ curl -I https://tg.focus-sync.ru/api/v1/health
    curl http://localhost:8081/
    ```
 
-4. **Проверьте логи контейнеров:**
+4. **Если frontend не отвечает, проверьте логи:**
    ```bash
-   docker logs synchronous_backend
-   docker logs synchronous_frontend
+   docker logs synchronous_frontend --tail=50
+   ```
+
+5. **Проверьте, что порты проброшены правильно:**
+   ```bash
+   # Должно показать, что порт 3000 проброшен на 0.0.0.0:3000->80/tcp
+   docker ps | grep frontend
+   
+   # Проверьте, что порт слушается на хосте
+   netstat -tlnp | grep 3000
+   # или
+   ss -tlnp | grep 3000
+   ```
+
+6. **Если проблема сохраняется, перезапустите frontend:**
+   ```bash
+   cd /opt/synchronous
+   docker compose restart frontend
+   
+   # Подождите несколько секунд и проверьте снова
+   sleep 5
+   curl http://localhost:3000/health
+   ```
+
+7. **Проверьте логи nginx после перезапуска:**
+   ```bash
+   sudo tail -f /var/log/nginx/tg.focus-sync-error.log
    ```
 
 5. **Если контейнеры не запускаются, проверьте .env файл:**

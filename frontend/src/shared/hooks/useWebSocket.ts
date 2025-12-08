@@ -6,7 +6,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { WebSocketClient } from '@/shared/lib/websocket';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://focus-sync.ru/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://tg.focus-sync.ru/api/v1';
 
 // Build WebSocket URL from API base origin to avoid duplicated path segments
 let WS_URL = 'ws://localhost:8080/api/v1/ws';
