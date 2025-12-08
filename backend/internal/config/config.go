@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -50,9 +52,18 @@ func (c *Config) Load(filePath string) error {
 	viper.BindEnv("DATABASE.DSN", "DB_DSN")
 	viper.BindEnv("TELEGRAM.BOT_TOKEN", "BOT_TOKEN")
 
+	// Конфиг файл опционален - все настройки можно задать через переменные окружения
 	err := viper.ReadInConfig()
 	if err != nil {
-		return fmt.Errorf("failed to read config file: %v", err)
+		// Если файл не найден, это не критично - используем только переменные окружения
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if errors.As(err, &configFileNotFoundError) || errors.Is(err, os.ErrNotExist) || strings.Contains(err.Error(), "no such file") {
+			// Файл не найден - это нормально, используем только env vars
+			// Можно продолжить без конфиг файла
+		} else {
+			// Другие ошибки (например, синтаксические) все еще критичны
+			return fmt.Errorf("failed to read config file: %v", err)
+		}
 	}
 
 	// Маппинг настроек

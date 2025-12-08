@@ -42,10 +42,15 @@ WORKDIR /app
 COPY --from=builder /app/app .
 COPY --from=builder /go/bin/goose /usr/local/bin/goose
 
-# Copy configs, migrations, and scripts
-COPY --from=builder /app/configs ./configs
+# Create configs directory (will be mounted as volume, but ensure it exists)
+RUN mkdir -p ./configs
+
+# Copy migrations and scripts
 COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/scripts ./scripts
+
+# Copy configs if they exist (optional - config can be provided via volume or env vars)
+# Note: configs directory will be mounted as volume in docker-compose
 
 # Copy swagger.yaml if it exists
 COPY --from=builder /app/swagger.yaml* ./
