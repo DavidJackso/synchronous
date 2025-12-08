@@ -1,0 +1,64 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+app
+/app
+
+# Test files
+*_test.go
+test/
+tests/
+
+# Documentation
+*.md
+docs/
+README*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Coverage
+coverage/
+*.coverprofile
+
+# Dependencies (will be downloaded in container)
+vendor/
+
