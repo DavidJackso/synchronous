@@ -72,10 +72,25 @@ jobs:
             
             # Rebuild and start services (only backend, frontend, swagger-ui)
             docker compose -f ${{ env.COMPOSE_FILE }} build --no-cache backend frontend swagger-ui
-            docker compose -f ${{ env.COMPOSE_FILE }} up -d backend frontend swagger-ui
             
-            # Wait for services to start
-            echo "Waiting for services to start..."
+            # Start backend first
+            echo "Starting backend..."
+            docker compose -f ${{ env.COMPOSE_FILE }} up -d backend
+            
+            # Wait for backend to be ready
+            echo "Waiting for backend to start..."
+            sleep 30
+            
+            # Check backend logs
+            echo "=== Backend startup logs ==="
+            docker compose -f ${{ env.COMPOSE_FILE }} logs --tail=50 backend || true
+            
+            # Start frontend and swagger-ui
+            echo "Starting frontend and swagger-ui..."
+            docker compose -f ${{ env.COMPOSE_FILE }} up -d frontend swagger-ui
+            
+            # Wait for all services
+            echo "Waiting for all services to start..."
             sleep 15
 
       - name: Health check
@@ -94,8 +109,11 @@ jobs:
             echo "=== Container Status ==="
             docker compose -f ${{ env.COMPOSE_FILE }} ps
             
-            echo -e "\n=== Backend Logs (last 50 lines) ==="
-            docker compose -f ${{ env.COMPOSE_FILE }} logs --tail=50 backend || true
+            echo -e "\n=== Backend Logs (last 100 lines) ==="
+            docker compose -f ${{ env.COMPOSE_FILE }} logs --tail=100 backend || true
+            
+            echo -e "\n=== Backend Container Status ==="
+            docker inspect synchronous_backend --format='Status: {{.State.Status}}, Health: {{.State.Health.Status}}' || docker inspect synchronous_backend --format='Status: {{.State.Status}}' || true
             
             echo -e "\n=== Frontend Logs (last 50 lines) ==="
             docker compose -f ${{ env.COMPOSE_FILE }} logs --tail=50 frontend || true
