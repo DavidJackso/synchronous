@@ -62,31 +62,37 @@ func (h *WebhookHandler) handleWebhook(c *gin.Context) {
 	// Читаем тело запроса
 	body, err := c.GetRawData()
 	if err != nil {
-		log.Printf("[Webhook] Failed to read request body: %v", err)
+		log.Printf("[Webhook] ❌ Failed to read request body: %v", err)
 		h.ErrorResponse(c, http.StatusBadRequest, "failed to read request body")
 		return
 	}
 
+	log.Printf("[Webhook] 📥 Received webhook, body length: %d bytes", len(body))
+
 	// Парсим обновление
 	update, err := telegramapi.ParseUpdate(body)
 	if err != nil {
-		log.Printf("[Webhook] Failed to parse update: %v", err)
+		log.Printf("[Webhook] ❌ Failed to parse update: %v", err)
+		log.Printf("[Webhook] Raw body (first 500 chars): %.500s", string(body))
 		h.ErrorResponse(c, http.StatusBadRequest, "failed to parse update")
 		return
 	}
 
+	log.Printf("[Webhook] ✅ Parsed update type: %T", update)
+
 	// Обрабатываем обновление в зависимости от типа
 	switch u := update.(type) {
 	case *telegramapi.MessageCreatedUpdate:
-		log.Printf("[Webhook] Received message from user=%d chat=%d text=%q",
+		log.Printf("[Webhook] 📨 Received message from user=%d chat=%d text=%q",
 			u.Message.Sender.UserID, u.Message.Recipient.ChatID, u.Message.Body.Text)
 
 		if err := h.handleMessageCreated(u); err != nil {
-			log.Printf("[Webhook] Failed to handle message_created: %v", err)
+			log.Printf("[Webhook] ❌ Failed to handle message_created: %v", err)
 			h.ErrorResponse(c, http.StatusInternalServerError, "failed to process message")
 			return
 		}
 
+		log.Printf("[Webhook] ✅ Message processed successfully")
 		h.SuccessResponse(c, http.StatusOK, gin.H{"status": "processed"})
 
 	case *telegramapi.MessageChatCreatedUpdate:
@@ -111,35 +117,53 @@ func (h *WebhookHandler) handleWebhook(c *gin.Context) {
 }
 
 func (h *WebhookHandler) handleMessageCreated(update *telegramapi.MessageCreatedUpdate) error {
-	if update == nil || h.telegramAPIService == nil {
+	if update == nil {
+		log.Printf("[Webhook] ⚠️ handleMessageCreated: update is nil")
+		return nil
+	}
+
+	if h.telegramAPIService == nil {
+		log.Printf("[Webhook] ⚠️ handleMessageCreated: telegramAPIService is nil")
 		return nil
 	}
 
 	text := strings.TrimSpace(update.Message.Body.Text)
 	if text == "" {
+		log.Printf("[Webhook] ⚠️ handleMessageCreated: empty text, ignoring")
 		return nil
 	}
 
 	lowered := strings.ToLower(text)
 	telegramUserID := update.Message.Sender.UserID
 
+	log.Printf("[Webhook] 🔍 Processing message: text=%q, lowered=%q, userID=%d", text, lowered, telegramUserID)
+
 	if telegramUserID == 0 {
+		log.Printf("[Webhook] ⚠️ handleMessageCreated: telegramUserID is 0, ignoring")
 		return nil
 	}
 
 	// Обработка команды /start
 	if lowered == "/start" || lowered == "start" || lowered == "привет" {
+		log.Printf("[Webhook] 🚀 Handling /start command for user=%d", telegramUserID)
 		_, err := h.telegramAPIService.SendMessageToUser(telegramUserID, &telegramapi.SendMessageRequest{
 			Text: welcomeMessage,
 		})
-		return err
+		if err != nil {
+			log.Printf("[Webhook] ❌ Failed to send welcome message: %v", err)
+			return err
+		}
+		log.Printf("[Webhook] ✅ Welcome message sent to user=%d", telegramUserID)
+		return nil
 	}
 
 	// Обработка команды /restart
 	if lowered == "/restart" || lowered == "restart" {
+		log.Printf("[Webhook] 🔄 Handling /restart command for user=%d", telegramUserID)
 		return h.handleRestart(telegramUserID)
 	}
 
+	log.Printf("[Webhook] ℹ️ Unknown command or message, ignoring: %q", text)
 	return nil
 }
 
