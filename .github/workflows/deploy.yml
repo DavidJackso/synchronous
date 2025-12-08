@@ -53,12 +53,9 @@ jobs:
             
             # Update .env with secrets
             cat > .env << EOF
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DB_NAME=${{ secrets.DB_NAME }}
-            MAXAPI_BASE_URL=${{ secrets.MAXAPI_BASE_URL }}
-            MAXAPI_ACCESS_TOKEN=${{ secrets.MAXAPI_ACCESS_TOKEN }}
+            DB_DSN=${{ secrets.DB_DSN }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
+            BOT_TOKEN=${{ secrets.BOT_TOKEN }}
             EOF
             
             # Stop and remove old containers (only backend, frontend, swagger-ui)

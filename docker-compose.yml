@@ -9,8 +9,7 @@ services:
     env_file:
       - .env
     environment:
-      - DB_DSN=${DB_DSN:-postgres://${DB_USER:-synchronous_user}:${DB_PASSWORD:-change_me}@localhost:5432/${DB_NAME:-synchronous_db}?sslmode=disable}
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - DB_DSN=${DB_DSN}
       - BOT_TOKEN=${BOT_TOKEN}
       - JWT_SECRET=${JWT_SECRET}
       - GIN_MODE=release
