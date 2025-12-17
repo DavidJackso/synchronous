@@ -42,20 +42,6 @@ func (a *App) Run() error {
 		}
 	}()
 
-	// Автомиграция моделей (опционально, если не используем goose)
-	// err = db.AutoMigrate(
-	// 	&entity.User{},
-	// 	&entity.UserStats{},
-	// 	&entity.Session{},
-	// 	&entity.Participant{},
-	// 	&entity.Task{},
-	// 	&entity.Message{},
-	// )
-	// if err != nil {
-	// 	return fmt.Errorf("failed to run migrations: %v", err)
-	// }
-
-	// Инициализация репозиториев
 	userRepo := gormRepo.NewUserRepository(db)
 	sessionRepo := gormRepo.NewSessionRepository(db)
 	taskRepo := gormRepo.NewTaskRepository(db)
@@ -96,7 +82,7 @@ func (a *App) Run() error {
 	userHandler := v1.NewUserHandler(baseHandler, userService)
 	wsHandler := v1.NewWebSocketHandler(baseHandler)
 	sessionHandler := v1.NewSessionHandler(baseHandler, sessionService, messageService, leaderboardService, wsHandler)
-	webhookHandler := v1.NewWebhookHandler(baseHandler, sessionService, telegramAPIService, authService)
+	webhookHandler := v1.NewWebhookHandler(baseHandler, sessionService, telegramAPIService)
 
 	// Инициализация роутера на gin
 	appRouter := router.New()
