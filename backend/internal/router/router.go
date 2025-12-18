@@ -29,10 +29,10 @@ func New() *gin.Engine {
 			"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
 		},
 		AllowHeaders: []string{
-			"Origin", "Content-Type", "Accept", "Authorization",
+			"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With",
 		},
 		ExposeHeaders: []string{
-			"Content-Length",
+			"Content-Length", "Set-Cookie",
 		},
 		AllowCredentials: true, // Critical for cookies
 		MaxAge:           12 * time.Hour,

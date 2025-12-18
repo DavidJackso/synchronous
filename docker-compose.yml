@@ -1,14 +1,5 @@
 version: "3.9"
 
-# Примечание: Postgres должен быть запущен отдельно
-# Для подключения к существующему postgres используйте DB_DSN в .env:
-# DB_DSN=postgres://postgres:R20vdp~Ar~Cz?i%68V@postgres:5432/postgres
-# 
-# Варианты подключения:
-# 1. Если postgres в другой docker сети - используйте external network (см. ниже)
-# 2. Если порт проброшен на хост - используйте host.docker.internal:5432
-# 3. Если postgres в сети по умолчанию - используйте имя контейнера postgres:5432
-
 services:
   backend:
     build:
