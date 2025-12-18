@@ -197,7 +197,7 @@ export const getParticipantsProgress = async (
 };
 
 /**
- * Get Max chat information for session
+ * Get Telegram chat information for session
  * @param sessionId - Session UUID
  * @returns Chat details (chatId, link, etc.)
  */

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -174,6 +175,10 @@ func (h *SessionHandler) getHistory(c *gin.Context) {
 
 // GetPublicSessions возвращает список публичных сессий (публичный метод)
 func (h *SessionHandler) GetPublicSessions(c *gin.Context) {
+	fmt.Printf("[GetPublicSessions] ✅ Public endpoint called: %s %s\n", c.Request.Method, c.Request.URL.Path)
+	fmt.Printf("[GetPublicSessions]   Origin: %s\n", c.GetHeader("Origin"))
+	fmt.Printf("[GetPublicSessions]   Cookie header: %s\n", c.GetHeader("Cookie"))
+
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if page < 1 {
 		page = 1

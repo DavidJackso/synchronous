@@ -8,7 +8,8 @@ interface InviteFriendsProps {
 }
 
 export const InviteFriends = ({ sessionInviteCode }: InviteFriendsProps) => {
-  const botBaseUrl = import.meta.env.VITE_MAX_BOT_URL || `https://max.ru/${import.meta.env.VITE_MAX_BOT_USERNAME || 't71_hakaton_bot'}?startapp=`;
+  const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'your_bot_username';
+  const botBaseUrl = `https://t.me/${botUsername}?start=`;
   const shareUrl = sessionInviteCode ? `${botBaseUrl}invite_${sessionInviteCode}` : botBaseUrl;
   
   const handleCopyLink = () => {

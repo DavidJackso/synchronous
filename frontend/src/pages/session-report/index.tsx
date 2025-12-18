@@ -19,7 +19,7 @@ import { resetSessionSetup, hydrateSessionSetup } from '@/entities/session/model
 import { Leaderboard } from '@/widgets/leaderboard/ui';
 import { AIReportTeaser } from '@/features/ai-assistant/ui';
 import { sessionsApi, leaderboardApi } from '@/shared/api';
-import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useTelegramWebApp } from '@/shared/hooks/useTelegramWebApp';
 import type { Task, SessionMode } from '@/shared/types';
 import type {
   SessionReport,
@@ -114,7 +114,7 @@ export function SessionReportPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { sessionId } = useParams<{ sessionId: string }>();
-  const { isMaxEnvironment, isReady } = useMaxWebApp();
+  const { isTelegramEnvironment, isReady } = useTelegramWebApp();
   const isGroupMode = useAppSelector(selectIsGroupMode);
   const localTasks = useAppSelector(selectSessionTasks) as Task[];
   const currentCycle = useAppSelector(selectCurrentCycle);
@@ -150,14 +150,14 @@ export function SessionReportPage() {
       return;
     }
 
-    // Wait for MAX WebApp to initialize
+    // Wait for Telegram WebApp to initialize
     if (!isReady) {
       return;
     }
 
     const loadReportData = async () => {
       // Dev mode: skip API calls, use local Redux state
-      if (!isMaxEnvironment) {
+      if (!isTelegramEnvironment) {
         setIsLoading(false);
         return;
       }
@@ -197,7 +197,7 @@ export function SessionReportPage() {
     };
 
     loadReportData();
-  }, [sessionId, isGroupMode, isMaxEnvironment, isReady, navigate]);
+  }, [sessionId, isGroupMode, isTelegramEnvironment, isReady, navigate]);
 
   // Transform API leaderboard entries to component format
   const leaderboardEntries: ComponentLeaderboardEntry[] = (
@@ -352,7 +352,7 @@ export function SessionReportPage() {
   ]);
 
   useEffect(() => {
-    if (!isReady || !isMaxEnvironment) {
+    if (!isReady || !isTelegramEnvironment) {
       return;
     }
 
@@ -396,7 +396,7 @@ export function SessionReportPage() {
     };
 
     loadRemoteHistory();
-  }, [isReady, isMaxEnvironment]);
+  }, [isReady, isTelegramEnvironment]);
 
   if (isLoading) {
     return (

@@ -5,7 +5,7 @@ import { RocketOutlined } from '@ant-design/icons';
 import { OnboardingCarousel, SessionCard } from '@/shared/ui';
 import { ActiveSessionCard } from '@/widgets/active-session-card';
 import { onboardingSteps, mockSessions } from '@/shared/lib/mockData';
-import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useTelegramWebApp } from '@/shared/hooks/useTelegramWebApp';
 import { sessionsApi } from '@/shared/api';
 import type { Session as ApiSession } from '@/shared/api';
 import type { Session, User } from '@/shared/types';
@@ -45,7 +45,7 @@ const calculateRemainingSeconds = (session: ApiSession): number => {
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { isMaxEnvironment, isReady } = useMaxWebApp();
+  const { isTelegramEnvironment, isReady } = useTelegramWebApp();
   const [activeSessions, setActiveSessions] = useState<Session[]>([]);
   const [activeSession, setActiveSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,14 +55,14 @@ export function HomePage() {
 
   // Fetch user's active session and public sessions
   useEffect(() => {
-    // Wait for MAX WebApp to initialize before deciding what to show
+    // Wait for Telegram WebApp to initialize before deciding what to show
     if (!isReady) {
       return;
     }
 
     const fetchData = async () => {
       // Dev mode: use mock data immediately
-      if (!isMaxEnvironment) {
+      if (!isTelegramEnvironment) {
         console.log('[HomePage] Using mock data');
         setActiveSessions(mockSessions);
         setActiveSession(null); // No active session in dev mode
@@ -138,7 +138,7 @@ export function HomePage() {
     };
 
     fetchData();
-  }, [isMaxEnvironment, isReady]);
+  }, [isTelegramEnvironment, isReady]);
 
   const handleStartFocus = () => {
     navigate('/session-setup');

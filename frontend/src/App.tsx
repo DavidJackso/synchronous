@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AppRouter } from '@/app/providers/RouterProvider';
 import { useAuth } from '@/app/store';
-import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useTelegramWebApp } from '@/shared/hooks/useTelegramWebApp';
 import { sessionsApi } from '@/shared/api';
 import { message } from 'antd';
 import { Spin } from 'antd';
@@ -10,17 +10,17 @@ import './App.css';
 /**
  * Root App component
  * 
- * Handles automatic authentication via MAX initData
+ * Handles automatic authentication via Telegram initData
  * User doesn't need to interact - login happens automatically
  */
 function App() {
   const { login, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { initData, user, isReady, webApp } = useMaxWebApp();
+  const { initData, user, isReady, webApp } = useTelegramWebApp();
   const [isInitializing, setIsInitializing] = useState(true);
   const [loginAttempted, setLoginAttempted] = useState(false);
   const [inviteLinkProcessed, setInviteLinkProcessed] = useState(false);
 
-  // Automatic login when MAX initData is available
+  // Automatic login when Telegram initData is available
   useEffect(() => {
     // Prevent duplicate login attempts
     if (loginAttempted) {
@@ -35,9 +35,9 @@ function App() {
         initDataPreview: initData?.substring(0, 50) + '...',
       });
 
-      // Wait for MAX WebApp to be ready
+      // Wait for Telegram WebApp to be ready
       if (!isReady) {
-        console.log('[App] ⏳ Waiting for MAX WebApp to be ready...');
+        console.log('[App] ⏳ Waiting for Telegram WebApp to be ready...');
         return;
       }
 

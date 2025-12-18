@@ -23,7 +23,7 @@ export const getMyProfile = async (skipAuthRefresh = false): Promise<UserProfile
 };
 
 /**
- * Get user contacts from Max Messenger for invitations
+ * Get user contacts from Telegram Messenger for invitations
  * @returns List of contacts with registration status
  */
 export const getContacts = async (): Promise<ContactsResponse> => {

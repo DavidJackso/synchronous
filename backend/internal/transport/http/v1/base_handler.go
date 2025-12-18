@@ -56,7 +56,7 @@ func (h *BaseHandler) setAccessTokenCookie(c *gin.Context, token string, maxAge 
 	// For development over HTTP, we'll use SameSite=Lax instead
 	var sameSite http.SameSite
 	if secure {
-		sameSite = http.SameSiteNoneMode // None allows cookies in iframe (MAX WebApp) - requires Secure
+		sameSite = http.SameSiteNoneMode // None allows cookies in iframe (Telegram WebApp) - requires Secure
 	} else {
 		sameSite = http.SameSiteLaxMode // Lax works with HTTP for same-site requests
 	}
@@ -82,7 +82,7 @@ func (h *BaseHandler) setRefreshTokenCookie(c *gin.Context, token string, maxAge
 	// For development over HTTP, we'll use SameSite=Lax instead
 	var sameSite http.SameSite
 	if secure {
-		sameSite = http.SameSiteNoneMode // None allows cookies in iframe (MAX WebApp) - requires Secure
+		sameSite = http.SameSiteNoneMode // None allows cookies in iframe (Telegram WebApp) - requires Secure
 	} else {
 		sameSite = http.SameSiteLaxMode // Lax works with HTTP for same-site requests
 	}

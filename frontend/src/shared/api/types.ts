@@ -150,11 +150,11 @@ export type LeaderboardPeriod = 'day' | 'week' | 'month' | 'all';
 // ============================================================================
 
 /**
- * Login request with MAX initData
- * initData is provided by MAX Bridge and contains validated user info
+ * Login request with Telegram initData
+ * initData is provided by Telegram WebApp and contains validated user info
  */
 export interface LoginRequest {
-  initData: string; // MAX Bridge initData string for validation
+  initData: string; // Telegram WebApp initData string for validation
   deviceId: string;
 }
 

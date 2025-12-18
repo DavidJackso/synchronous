@@ -3,7 +3,7 @@ import { List, Typography, Tag, Empty, Spin, Pagination, Flex, message } from 'a
 import { HistoryOutlined, ClockCircleOutlined, TeamOutlined } from '@ant-design/icons';
 import { sessionsApi } from '@/shared/api';
 import type { Session as ApiSession, SessionsHistoryResponse } from '@/shared/api';
-import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useTelegramWebApp } from '@/shared/hooks/useTelegramWebApp';
 import { mockSessions } from '@/shared/lib/mockData';
 import './styles.css';
 
@@ -55,7 +55,7 @@ const mapToHistoryItem = (session: ApiSession): HistoryItem => {
 };
 
 export function SessionHistoryPage() {
-  const { isReady, isMaxEnvironment } = useMaxWebApp();
+  const { isReady, isTelegramEnvironment } = useTelegramWebApp();
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -70,7 +70,7 @@ export function SessionHistoryPage() {
     setIsLoading(true);
 
     try {
-      if (!isMaxEnvironment) {
+      if (!isTelegramEnvironment) {
         const mockItems = mockSessions.map((s) => {
           const mockSession: ApiSession = {
             id: s.id,
@@ -121,7 +121,7 @@ export function SessionHistoryPage() {
     }
     loadHistory(page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReady, isMaxEnvironment, page]);
+  }, [isReady, isTelegramEnvironment, page]);
 
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);

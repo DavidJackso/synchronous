@@ -8,7 +8,7 @@
  * - Error handling and logging
  */
 
-import axios, { AxiosError } from 'axios'; 
+import axios, { AxiosError, isAxiosError } from 'axios'; 
 import type { InternalAxiosRequestConfig } from 'axios';
 
 // Extend Axios types to include custom properties
@@ -143,10 +143,10 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized - backend will refresh via http-only cookie
     if (error.response?.status === 401 && !originalRequest._retry && !shouldSkipRefresh) {
-      // Check if we're running in MAX environment (have initData)
+      // Check if we're running in Telegram environment (have initData)
       // If not, don't attempt refresh to avoid infinite loops in dev mode
-      if (typeof window !== 'undefined' && !window.WebApp?.initData) {
-        console.warn('[API Client] 401 in dev mode (no MAX initData) - skipping token refresh');
+      if (typeof window !== 'undefined' && !window.Telegram?.WebApp?.initData) {
+        console.warn('[API Client] 401 in dev mode (no Telegram initData) - skipping token refresh');
         return Promise.reject(error);
       }
 
@@ -237,3 +237,6 @@ export const isNetworkError = (error: unknown): boolean => {
   }
   return false;
 };
+
+// Export isAxiosError for use in other modules
+export { isAxiosError };

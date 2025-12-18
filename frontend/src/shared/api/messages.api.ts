@@ -1,9 +1,9 @@
 /**
  * Messages API
- * Endpoints for Max Messenger chat integration
+ * Endpoints for Telegram Messenger chat integration
  * 
- * IMPORTANT: Messages are stored in Max API, not in our database.
- * Use Max SDK/Widget for optimal chat experience.
+ * IMPORTANT: Messages are stored in Telegram API, not in our database.
+ * Use Telegram SDK/Widget for optimal chat experience.
  */
 
 import { apiClient } from './client';
@@ -14,11 +14,11 @@ import type { MessagesResponse, MessageResponse, SendMessageRequest } from './ty
 // ============================================================================
 
 /**
- * Get messages from Max chat for session
+ * Get messages from Telegram chat for session
  * @param sessionId - Session UUID
  * @param before - Get messages before this timestamp (Unix ms)
  * @param limit - Number of messages to fetch (default: 50)
- * @returns List of messages from Max API
+ * @returns List of messages from Telegram API
  */
 export const getMessages = async (
   sessionId: string,
@@ -38,10 +38,10 @@ export const getMessages = async (
 };
 
 /**
- * Send message to Max chat for session
+ * Send message to Telegram chat for session
  * @param sessionId - Session UUID
  * @param text - Message text
- * @returns Sent message from Max API
+ * @returns Sent message from Telegram API
  */
 export const sendMessage = async (
   sessionId: string,

@@ -3,16 +3,16 @@ import { Checkbox } from 'antd';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks/redux';
 import { selectSessionTasks } from '@/entities/session/model/activeSessionSelectors';
 import { toggleTaskAsync } from '@/entities/session/model/activeSessionSlice';
-import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useTelegramWebApp } from '@/shared/hooks/useTelegramWebApp';
 import './TaskList.css';
 
 const TaskListComponent = () => {
   const dispatch = useAppDispatch();
-  const { isMaxEnvironment } = useMaxWebApp();
+  const { isTelegramEnvironment } = useTelegramWebApp();
   const tasks = useAppSelector(selectSessionTasks);
   
   const handleToggle = (taskId: string) => {
-    dispatch(toggleTaskAsync({ taskId, isMaxEnvironment }));
+    dispatch(toggleTaskAsync({ taskId, isTelegramEnvironment }));
   };
   
   if (tasks.length === 0) {

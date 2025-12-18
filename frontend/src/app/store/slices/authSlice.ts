@@ -28,7 +28,7 @@ interface AuthState {
 }
 
 interface LoginPayload {
-  initData: string; // MAX Bridge initData
+  initData: string; // Telegram Bridge initData
   deviceId: string;
 }
 
@@ -48,7 +48,7 @@ const initialState: AuthState = {
 // ============================================================================
 
 /**
- * Login with MAX initData
+ * Login with Telegram initData
  * Backend sets http-only cookies for auth tokens
  */
 export const loginThunk = createAsyncThunk(

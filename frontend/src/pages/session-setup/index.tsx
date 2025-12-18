@@ -4,14 +4,14 @@ import { useAppDispatch } from '@/shared/hooks/redux';
 import { startSession, setInviteLink } from '@/entities/session/model/activeSessionSlice';
 import { SessionSetupForm } from '@/features/session-create';
 import { sessionsApi, getErrorMessage } from '@/shared/api';
-import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useTelegramWebApp } from '@/shared/hooks/useTelegramWebApp';
 import type { SessionMode } from '@/shared/types';
 import './styles.css';
 
 export function SessionSetupPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { isMaxEnvironment } = useMaxWebApp();
+  const { isTelegramEnvironment } = useTelegramWebApp();
 
   const handleClose = () => {
     navigate('/');
@@ -28,8 +28,8 @@ export function SessionSetupPage() {
     console.log('[SessionSetup] Creating session:', data);
 
     try {
-      // Create session via API if in MAX environment
-      if (isMaxEnvironment) {
+      // Create session via API if in Telegram environment
+      if (isTelegramEnvironment) {
         const sessionResponse = await sessionsApi.createSession({
           mode: data.mode,
           tasks: data.tasks,

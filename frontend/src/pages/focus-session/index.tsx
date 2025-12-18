@@ -23,7 +23,7 @@ import {
 import { startSession, type SessionPhase, type SessionStatus } from '@/entities/session/model/activeSessionSlice';
 import { sessionsApi, getErrorMessage } from '@/shared/api';
 import type { ParticipantProgress, Session as ApiSession } from '@/shared/api';
-import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useTelegramWebApp } from '@/shared/hooks/useTelegramWebApp';
 import { useWebSocketEvent } from '@/shared/hooks/useWebSocket';
 import type { Task } from '@/shared/types';
 import './styles.css';
@@ -79,7 +79,7 @@ export function FocusSessionPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
-  const { isMaxEnvironment } = useMaxWebApp();
+  const { isTelegramEnvironment } = useTelegramWebApp();
   
   // Session setup state
   const setupTasks = useAppSelector(selectTasks);
@@ -122,7 +122,7 @@ export function FocusSessionPage() {
 
   // Load session from backend if coming from route params
   useEffect(() => {
-    if (routeSessionId && isMaxEnvironment && !reduxSessionId) {
+    if (routeSessionId && isTelegramEnvironment && !reduxSessionId) {
       const loadSession = async () => {
         try {
           const response = await sessionsApi.getSessionById(routeSessionId);
@@ -168,7 +168,7 @@ export function FocusSessionPage() {
       
       loadSession();
     }
-  }, [routeSessionId, reduxSessionId, isMaxEnvironment, dispatch, navigate]);
+  }, [routeSessionId, reduxSessionId, isTelegramEnvironment, dispatch, navigate]);
   
   // Initialize session on mount if not already started
   useEffect(() => {
@@ -201,7 +201,7 @@ export function FocusSessionPage() {
     if (
       sessionId &&
       reduxSessionId &&
-      isMaxEnvironment &&
+      isTelegramEnvironment &&
       sessionStatus === 'pending' &&
       !isStarted
     ) {
@@ -209,11 +209,11 @@ export function FocusSessionPage() {
         dispatch(startSessionAsync());
       });
     }
-  }, [sessionId, reduxSessionId, isMaxEnvironment, sessionStatus, isStarted, dispatch]);
+  }, [sessionId, reduxSessionId, isTelegramEnvironment, sessionStatus, isStarted, dispatch]);
   
   // Load participants progress for group sessions
   useEffect(() => {
-    if (!isGroupMode || !sessionId || !isMaxEnvironment) {
+    if (!isGroupMode || !sessionId || !isTelegramEnvironment) {
       return;
     }
 
@@ -248,13 +248,13 @@ export function FocusSessionPage() {
     // Poll for updates every 10 seconds
     const interval = setInterval(loadProgress, 10000);
     return () => clearInterval(interval);
-  }, [isGroupMode, sessionId, isMaxEnvironment]);
+  }, [isGroupMode, sessionId, isTelegramEnvironment]);
   
   // Listen for task completion events from WebSocket for real-time updates
   useWebSocketEvent<{ sessionId: string; userId: string; taskId: string; completed: boolean }>(
     'task_updated',
     useCallback((data) => {
-      if (data.sessionId === sessionId && isGroupMode && isMaxEnvironment) {
+      if (data.sessionId === sessionId && isGroupMode && isTelegramEnvironment) {
         // Reload progress when any participant completes a task (no loader - seamless update)
         sessionsApi.getParticipantsProgress(sessionId)
           .then(response => {
@@ -268,7 +268,7 @@ export function FocusSessionPage() {
             console.error('[FocusSession] Failed to update progress:', error);
           });
       }
-    }, [sessionId, isGroupMode, isMaxEnvironment, areProgressEqual])
+    }, [sessionId, isGroupMode, isTelegramEnvironment, areProgressEqual])
   );
   
   // Redirect to report when session is completed

@@ -21,9 +21,6 @@ func New() *gin.Engine {
 		"https://focus-sync.ru",    // Production HTTPS
 		"http://tg.focus-sync.ru",  // Subdomain HTTP
 		"https://tg.focus-sync.ru", // Subdomain HTTPS
-		"https://st.max.ru",        // MAX CDN (loads max-web-app.js)
-		"https://webappcdn.max.ru", // MAX WebApp CDN
-		"https://max.ru",           // MAX main domain
 	}
 
 	config := cors.Config{
@@ -56,11 +53,14 @@ func New() *gin.Engine {
 
 	// Добавляем middleware для логирования cookies (до CORS)
 	router.Use(func(c *gin.Context) {
+		origin := c.GetHeader("Origin")
 		cookieHeader := c.GetHeader("Cookie")
+		fmt.Printf("[Request] 📥 %s %s\n", c.Request.Method, c.Request.URL.Path)
+		fmt.Printf("[Request]   Origin: %s\n", origin)
 		if cookieHeader != "" {
 			fmt.Printf("[Request] 🍪 Cookies received: %s\n", cookieHeader)
 		} else {
-			fmt.Printf("[Request] ❌ No Cookie header in request to %s\n", c.Request.URL.Path)
+			fmt.Printf("[Request] ❌ No Cookie header\n")
 		}
 		c.Next()
 	})

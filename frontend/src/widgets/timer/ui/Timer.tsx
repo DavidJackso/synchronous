@@ -18,14 +18,14 @@ import {
   completeSessionAsync,
 } from '@/entities/session/model/activeSessionSlice';
 import { getErrorMessage } from '@/shared/api';
-import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useTelegramWebApp } from '@/shared/hooks/useTelegramWebApp';
 import { message } from 'antd';
 import './Timer.css';
 
 const TimerComponent = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isMaxEnvironment } = useMaxWebApp();
+  const { isTelegramEnvironment } = useTelegramWebApp();
   
   const formattedTime = useAppSelector(selectFormattedTime);
   const progress = useAppSelector(selectProgress);
@@ -65,7 +65,7 @@ const TimerComponent = () => {
   };
   
   const handleStop = () => {
-    console.log('[Timer] handleStop called', { sessionId, isMaxEnvironment });
+    console.log('[Timer] handleStop called', { sessionId, isTelegramEnvironment });
     
     if (!sessionId) {
       console.error('[Timer] No sessionId available');
@@ -81,7 +81,7 @@ const TimerComponent = () => {
     setIsCompleting(true);
     
     try {
-      const result = await dispatch(completeSessionAsync({ isMaxEnvironment })).unwrap();
+      const result = await dispatch(completeSessionAsync({ isTelegramEnvironment })).unwrap();
       console.log('[Timer] Session completed successfully', result);
       setIsCompleteModalOpen(false);
       message.success('Сессия завершена! 🎉');

@@ -116,22 +116,22 @@ export const togglePauseAsync = createAsyncThunk<
  */
 export const completeSessionAsync = createAsyncThunk<
   { completed: true },
-  { isMaxEnvironment: boolean },
+  { isTelegramEnvironment: boolean },
   { state: { activeSession: ActiveSessionState } }
 >(
   'activeSession/completeSessionAsync',
-  async ({ isMaxEnvironment }, { getState }) => {
+  async ({ isTelegramEnvironment }, { getState }) => {
     const { sessionId } = getState().activeSession;
     
-    console.log('[completeSessionAsync] Starting', { sessionId, isMaxEnvironment });
+    console.log('[completeSessionAsync] Starting', { sessionId, isTelegramEnvironment });
     
     if (!sessionId) {
       console.error('[completeSessionAsync] No sessionId found');
       throw new Error('No active session');
     }
 
-    // Only call API in production (MAX environment)
-    if (isMaxEnvironment) {
+    // Only call API in production (Telegram environment)
+    if (isTelegramEnvironment) {
       console.log('[completeSessionAsync] Calling API to complete session', { sessionId });
       try {
         const result = await sessionsApi.completeSession(sessionId);
@@ -154,11 +154,11 @@ export const completeSessionAsync = createAsyncThunk<
  */
 export const toggleTaskAsync = createAsyncThunk<
   { task: { id: string; completed: boolean } },
-  { taskId: string; isMaxEnvironment: boolean },
+  { taskId: string; isTelegramEnvironment: boolean },
   { state: { activeSession: ActiveSessionState } }
 >(
   'activeSession/toggleTaskAsync',
-  async ({ taskId, isMaxEnvironment }, { getState }) => {
+  async ({ taskId, isTelegramEnvironment }, { getState }) => {
     const { sessionId, tasks } = getState().activeSession;
     
     if (!sessionId) {
@@ -172,8 +172,8 @@ export const toggleTaskAsync = createAsyncThunk<
 
     const newCompleted = !task.completed;
 
-    // Only call API in production (MAX environment)
-    if (isMaxEnvironment) {
+    // Only call API in production (Telegram environment)
+    if (isTelegramEnvironment) {
       await tasksApi.updateTask(sessionId, taskId, newCompleted);
     } else {
       console.log('[toggleTaskAsync] Dev mode - updating locally');

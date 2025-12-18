@@ -9,7 +9,7 @@ import {
 } from '@/entities/session/model/activeSessionSelectors';
 import { selectTasks, selectFocusDuration, selectBreakDuration, selectIsPrivate } from '@/entities/session/model/selectors';
 import { sessionsApi, getErrorMessage } from '@/shared/api';
-import { useMaxWebApp } from '@/shared/hooks/useMaxWebApp';
+import { useTelegramWebApp } from '@/shared/hooks/useTelegramWebApp';
 import { useWebSocketEvent } from '@/shared/hooks/useWebSocket';
 import { useAuth } from '@/app/store';
 import { ParticipantTasksForm } from '@/features/participant-tasks';
@@ -22,7 +22,7 @@ export function LobbyPage() {
   const navigate = useNavigate();
   const { sessionId: routeSessionId } = useParams<{ sessionId: string }>();
   const { user } = useAuth();
-  const { isMaxEnvironment, isReady: isMaxReady } = useMaxWebApp();
+  const { isTelegramEnvironment, isReady: isTelegramReady } = useTelegramWebApp();
   
   const reduxSessionId = useAppSelector(selectSessionId);
   const groupName = useAppSelector(selectGroupName);
@@ -47,14 +47,14 @@ export function LobbyPage() {
       return;
     }
 
-    // Wait for MAX WebApp to initialize before deciding what to show
-    if (!isMaxReady) {
+    // Wait for Telegram WebApp to initialize before deciding what to show
+    if (!isTelegramReady) {
       return;
     }
 
     const loadSession = async () => {
       // Dev mode: use mock data
-      if (!isMaxEnvironment) {
+      if (!isTelegramEnvironment) {
         setParticipants([
           { userId: '1', userName: 'Давид', avatarUrl: '', isReady: true, joinedAt: new Date().toISOString() },
           { userId: '2', userName: 'Мария', avatarUrl: '', isReady: true, joinedAt: new Date().toISOString() },
@@ -106,7 +106,7 @@ export function LobbyPage() {
     const pollInterval = setInterval(loadSession, 5000);
 
     return () => clearInterval(pollInterval);
-  }, [sessionId, navigate, isMaxEnvironment, isMaxReady, user]);
+  }, [sessionId, navigate, isTelegramEnvironment, isTelegramReady, user]);
 
   // WebSocket real-time updates
   useWebSocketEvent<Session>('session_updated', useCallback((data) => {
@@ -147,7 +147,8 @@ export function LobbyPage() {
   const allReady = nonCreatorParticipants.length === 0 || nonCreatorParticipants.every(p => p.isReady);
   
   // Get bot username from environment or use default
-  const botBaseUrl = import.meta.env.VITE_MAX_BOT_URL || `https://max.ru/${import.meta.env.VITE_MAX_BOT_USERNAME || 't71_hakaton_bot'}?startapp=`;
+  const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'your_bot_username';
+  const botBaseUrl = `https://t.me/${botUsername}?start=`;
   // inviteLink from backend contains just the code (e.g., 'abc12345'), we add 'invite_' prefix
   const inviteLink = session?.inviteLink
     ? `${botBaseUrl}invite_${session.inviteLink}`
@@ -166,7 +167,7 @@ export function LobbyPage() {
   };
 
   const handleToggleReady = async () => {
-    if (!sessionId || !isMaxEnvironment) {
+    if (!sessionId || !isTelegramEnvironment) {
       setIsReady(!isReady);
       return;
     }
@@ -184,7 +185,7 @@ export function LobbyPage() {
   const handleStartSession = async () => {
     if (!sessionId) return;
 
-    if (isMaxEnvironment) {
+    if (isTelegramEnvironment) {
       try {
         await sessionsApi.startSession(sessionId);
         navigate(`/focus-session/${sessionId}`);
@@ -235,7 +236,7 @@ export function LobbyPage() {
         </Card>
 
         {/* Tasks Section - показываем форму создания задач для участников */}
-        {user && !isCreator && isMaxEnvironment && (
+        {user && !isCreator && isTelegramEnvironment && (
           <ParticipantTasksForm 
             sessionId={sessionId!} 
             initialTasks={userTasks}

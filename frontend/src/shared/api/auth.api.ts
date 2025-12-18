@@ -6,8 +6,7 @@
  * Frontend does not handle tokens directly
  */
 
-import { apiClient } from './client';
-import axios from 'axios';
+import { apiClient, isAxiosError } from './client';
 import type {
   LoginRequest,
   LoginResponse,
@@ -19,10 +18,10 @@ import type {
 // ============================================================================
 
 /**
- * Login with MAX initData
+ * Login with Telegram initData
  * Backend will set http-only cookies for access and refresh tokens
  * 
- * @param initData - MAX Bridge initData string (validated by backend)
+ * @param initData - Telegram WebApp initData string (validated by backend)
  * @param deviceId - Unique device identifier
  * @returns User profile data (tokens are in cookies)
  */
@@ -32,7 +31,7 @@ export const login = async (
 ): Promise<LoginResponse> => {
   console.log('[Auth API] 📤 Sending login request', {
     initDataLength: initData.length,
-    initDataFull: initData, // 🔍 ПОЛНЫЙ initData для анализа
+    initDataFull: initData, // Full initData for debugging
     deviceIdPreview: deviceId.substring(0, 50),
   });
 
@@ -64,16 +63,18 @@ export const login = async (
     // Tokens are automatically stored in http-only cookies by backend
     // No need to manually store them
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[Auth API] ❌ Login failed', error);
     
     // Log detailed error information
-    if (axios.isAxiosError(error)) {
+    if (isAxiosError(error)) {
+      // TypeScript now knows error is AxiosError
+      const axiosError = error;
       console.error('[Auth API] Error details:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        headers: error.response?.headers,
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+        headers: axiosError.response?.headers,
       });
     }
     
