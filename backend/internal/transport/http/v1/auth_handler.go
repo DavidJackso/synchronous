@@ -59,6 +59,9 @@ func (h *AuthHandler) login(c *gin.Context) {
 	refreshTTL := h.tokenManager.GetRefreshTTL()
 
 	fmt.Printf("[Auth Handler] 🍪 Setting cookies (access TTL: %ds, refresh TTL: %ds)\n", accessTTL, refreshTTL)
+	fmt.Printf("[Auth Handler]   Origin: %s\n", c.GetHeader("Origin"))
+	fmt.Printf("[Auth Handler]   Referer: %s\n", c.GetHeader("Referer"))
+	fmt.Printf("[Auth Handler]   X-Forwarded-Proto: %s\n", c.GetHeader("X-Forwarded-Proto"))
 	h.setAccessTokenCookie(c, tokens.AccessToken, accessTTL)
 	h.setRefreshTokenCookie(c, tokens.RefreshToken, refreshTTL)
 

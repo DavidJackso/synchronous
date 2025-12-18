@@ -44,10 +44,22 @@ export const login = async (
   try {
     const response = await apiClient.post<LoginResponse>('/auth/login', payload);
 
+    const allCookies = document.cookie;
+    const setCookieHeader = response.headers?.['set-cookie'];
+    
     console.log('[Auth API] ✅ Login successful', {
       user: response.data.user,
-      cookiesReceived: document.cookie.includes('access_token'),
+      cookiesReceived: allCookies.includes('access_token'),
+      allCookies: allCookies || '(no cookies - http-only cookies are not visible in JS)',
+      setCookieHeader: setCookieHeader || '(no Set-Cookie header)',
+      responseHeaders: response.headers,
     });
+    
+    // Note: http-only cookies are NOT visible in document.cookie
+    // This is expected behavior - they're stored by browser but not accessible to JS
+    if (!allCookies.includes('access_token')) {
+      console.warn('[Auth API] ⚠️ access_token not visible in document.cookie - this is NORMAL for http-only cookies');
+    }
 
     // Tokens are automatically stored in http-only cookies by backend
     // No need to manually store them

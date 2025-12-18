@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -14,17 +15,19 @@ func New() *gin.Engine {
 	router := gin.New()
 
 	// CORS configuration for HTTP-only cookies
+	allowedOrigins := []string{
+		"http://localhost:3000",    // Local development
+		"http://focus-sync.ru",     // Production HTTP
+		"https://focus-sync.ru",    // Production HTTPS
+		"http://tg.focus-sync.ru",  // Subdomain HTTP
+		"https://tg.focus-sync.ru", // Subdomain HTTPS
+		"https://st.max.ru",        // MAX CDN (loads max-web-app.js)
+		"https://webappcdn.max.ru", // MAX WebApp CDN
+		"https://max.ru",           // MAX main domain
+	}
+
 	config := cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:3000",    // Local development
-			"http://focus-sync.ru",     // Production HTTP
-			"https://focus-sync.ru",    // Production HTTPS
-			"http://tg.focus-sync.ru",  // Subdomain HTTP
-			"https://tg.focus-sync.ru", // Subdomain HTTPS
-			"https://st.max.ru",        // MAX CDN (loads max-web-app.js)
-			"https://webappcdn.max.ru", // MAX WebApp CDN
-			"https://max.ru",           // MAX main domain
-		},
+		// Don't use AllowOrigins when using AllowOriginFunc
 		AllowMethods: []string{
 			"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
 		},
@@ -36,7 +39,31 @@ func New() *gin.Engine {
 		},
 		AllowCredentials: true, // Critical for cookies
 		MaxAge:           12 * time.Hour,
+		AllowOriginFunc: func(origin string) bool {
+			// Log all origins for debugging
+			fmt.Printf("[CORS] 🔍 Checking origin: %s\n", origin)
+			// Check against allowed origins
+			for _, allowed := range allowedOrigins {
+				if origin == allowed {
+					fmt.Printf("[CORS] ✅ Origin allowed: %s\n", origin)
+					return true
+				}
+			}
+			fmt.Printf("[CORS] ❌ Origin not allowed: %s\n", origin)
+			return false
+		},
 	}
+
+	// Добавляем middleware для логирования cookies (до CORS)
+	router.Use(func(c *gin.Context) {
+		cookieHeader := c.GetHeader("Cookie")
+		if cookieHeader != "" {
+			fmt.Printf("[Request] 🍪 Cookies received: %s\n", cookieHeader)
+		} else {
+			fmt.Printf("[Request] ❌ No Cookie header in request to %s\n", c.Request.URL.Path)
+		}
+		c.Next()
+	})
 
 	// Добавляем middleware
 	router.Use(cors.New(config))

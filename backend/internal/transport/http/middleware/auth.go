@@ -16,7 +16,10 @@ func AuthMiddleware(authService interfaces.AuthService) gin.HandlerFunc {
 			fmt.Printf("[Auth Middleware] ❌ No access_token cookie found: %v\n", err)
 			fmt.Printf("[Auth Middleware]   Request URL: %s\n", c.Request.URL.Path)
 			fmt.Printf("[Auth Middleware]   Request Method: %s\n", c.Request.Method)
+			fmt.Printf("[Auth Middleware]   Origin: %s\n", c.GetHeader("Origin"))
+			fmt.Printf("[Auth Middleware]   Referer: %s\n", c.GetHeader("Referer"))
 			fmt.Printf("[Auth Middleware]   All cookies: %v\n", c.Request.Cookies())
+			fmt.Printf("[Auth Middleware]   Cookie header: %s\n", c.GetHeader("Cookie"))
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "unauthorized",
 			})

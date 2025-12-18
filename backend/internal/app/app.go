@@ -100,7 +100,8 @@ func (a *App) Run() error {
 	{
 		// Публичные routes (без аутентификации)
 		authHandler.RegisterRoutes(api)
-		webhookHandler.RegisterRoutes(api) // Webhook должен быть публичным
+		webhookHandler.RegisterRoutes(api)                            // Webhook должен быть публичным
+		api.GET("/sessions/public", sessionHandler.GetPublicSessions) // Публичные сессии
 
 		// Защищенные routes (с аутентификацией)
 		protected := api.Group("")

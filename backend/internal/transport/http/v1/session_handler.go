@@ -40,7 +40,6 @@ func (h *SessionHandler) RegisterRoutes(router *gin.RouterGroup) {
 	{
 		// Список сессий и создание
 		sessions.GET("", h.getHistory)
-		sessions.GET("/public", h.getPublicSessions)
 		sessions.POST("", h.createSession)
 		sessions.GET("/active", h.getActiveSession)
 		sessions.POST("/join-by-invite", h.joinByInviteLink)
@@ -173,8 +172,8 @@ func (h *SessionHandler) getHistory(c *gin.Context) {
 	})
 }
 
-// getPublicSessions возвращает список публичных сессий
-func (h *SessionHandler) getPublicSessions(c *gin.Context) {
+// GetPublicSessions возвращает список публичных сессий (публичный метод)
+func (h *SessionHandler) GetPublicSessions(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if page < 1 {
 		page = 1

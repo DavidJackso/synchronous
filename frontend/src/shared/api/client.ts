@@ -61,11 +61,20 @@ apiClient.interceptors.request.use(
 
     // Log request in development
     if (import.meta.env.DEV) {
+      const allCookies = document.cookie;
+      const hasAccessToken = allCookies.includes('access_token');
+      const hasRefreshToken = allCookies.includes('refresh_token');
+      
       console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
         params: config.params,
         data: config.data,
         withCredentials: config.withCredentials,
-        hasCookies: document.cookie.length > 0,
+        hasCookies: allCookies.length > 0,
+        hasAccessToken,
+        hasRefreshToken,
+        allCookies: allCookies || '(no cookies)',
+        origin: window.location.origin,
+        baseURL: config.baseURL,
       });
     }
 
@@ -103,9 +112,18 @@ apiClient.interceptors.response.use(
   (response) => {
     // Log response in development
     if (import.meta.env.DEV) {
+      const setCookieHeader = response.headers['set-cookie'];
+      const allCookies = document.cookie;
+      const hasAccessToken = allCookies.includes('access_token');
+      const hasRefreshToken = allCookies.includes('refresh_token');
+      
       console.log(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
         status: response.status,
         data: response.data,
+        setCookieHeader: setCookieHeader || '(no Set-Cookie header)',
+        cookiesAfterResponse: allCookies || '(no cookies)',
+        hasAccessToken,
+        hasRefreshToken,
       });
     }
 
